@@ -319,9 +319,9 @@ export const getDailyAnalyticsData = async (req, res) => {
             devCount: { $sum: { $cond: [{ $eq: ["$course", "software_development"] }, 1, 0] } },
             testingCount: { $sum: { $cond: [{ $eq: ["$course", "software_testing"] }, 1, 0] } },
             otherCoursesCount: { $sum: { $cond: [{ $eq: ["$course", "othersCourse"] }, 1, 0] } },
-            totalAmount: { $sum: { $ifNull: ["$totalAmount", 0] } },
-            totalReceived: { $sum: { $ifNull: ["$totalAmountReceived", 0] } },
-            totalBalance: { $sum: { $ifNull: ["$balanceAmount", 0] } },
+            totalAmount: { $sum: { $ifNull: ["$financial.totalAmount", 0] } },
+            totalReceived: { $sum: { $ifNull: ["$financial.totalAmountReceived", 0] } },
+            totalBalance: { $sum: { $ifNull: ["$financial.balanceAmount", 0] } },
             totalLoan: {
               $sum: {
                 $cond: [
@@ -477,9 +477,9 @@ export const getWeeklyAnalyticsData = async (req, res) => {
             devCount: { $sum: { $cond: [{ $eq: ["$course", "software_development"] }, 1, 0] } },
             testingCount: { $sum: { $cond: [{ $eq: ["$course", "software_testing"] }, 1, 0] } },
             otherCoursesCount: { $sum: { $cond: [{ $eq: ["$course", "othersCourse"] }, 1, 0] } },
-            totalAmount: { $sum: { $ifNull: ["$totalAmount", 0] } },
-            totalReceived: { $sum: { $ifNull: ["$totalAmountReceived", 0] } },
-            totalBalance: { $sum: { $ifNull: ["$balanceAmount", 0] } },
+            totalAmount: { $sum: { $ifNull: ["$financial.totalAmount", 0] } },
+            totalReceived: { $sum: { $ifNull: ["$financial.totalAmountReceived", 0] } },
+            totalBalance: { $sum: { $ifNull: ["$financial.balanceAmount", 0] } },
             totalLoan: { $sum: { $cond: [{ $eq: ["$loan", true] }, { $ifNull: ["$loanDistrubutedAmount", 0] }, 0] } },
             initialAmountCount: { $sum: { $cond: [{ $eq: ["$initialAmount", true] }, 1, 0] } },
             profileCreatedCount: { $sum: { $cond: [{ $eq: ["$profileCreated", true] }, 1, 0] } },
@@ -655,9 +655,9 @@ export const getAnalyticsData = async (req, res) => {
         {
           $group: {
             _id: null,
-            totalAmount: { $sum: { $ifNull: ['$totalAmount', 0] } },
-            totalAmountReceived: { $sum: { $ifNull: ['$totalAmountReceived', 0] } },
-            totalBalanceAmount: { $sum: { $ifNull: ['$balanceAmount', 0] } },
+            totalAmount: { $sum: { $ifNull: ['$financial.totalAmount', 0] } },
+            totalAmountReceived: { $sum: { $ifNull: ['$financial.totalAmountReceived', 0] } },
+            totalBalanceAmount: { $sum: { $ifNull: ['$financial.balanceAmount', 0] } },
             totalLoanAmount: { $sum: { $cond: [{ $eq: ['$loan', true] }, { $ifNull: ['$loanDistrubutedAmount', 0] }, 0] } }
           }
         }
@@ -789,9 +789,9 @@ export const getAnalyticsData = async (req, res) => {
             otherCoursesCount: {
               $sum: { $cond: [{ $eq: ["$course", "othersCourse"] }, 1, 0] }
             },
-            totalAmount: { $sum: { $ifNull: ["$totalAmount", 0] } },
-            totalReceived: { $sum: { $ifNull: ["$totalAmountReceived", 0] } },
-            totalBalance: { $sum: { $ifNull: ["$balanceAmount", 0] } },
+            totalAmount: { $sum: { $ifNull: ["$financial.totalAmount", 0] } },
+            totalReceived: { $sum: { $ifNull: ["$financial.totalAmountReceived", 0] } },
+            totalBalance: { $sum: { $ifNull: ["$financial.balanceAmount", 0] } },
             totalLoan: {
               $sum: {
                 $cond: [
@@ -1012,9 +1012,9 @@ export const getAnalyticsData = async (req, res) => {
               otherCoursesCount: {
                 $sum: { $cond: [{ $eq: ["$course", "othersCourse"] }, 1, 0] }
               },
-              totalAmount: { $sum: { $ifNull: ["$totalAmount", 0] } },
-              totalReceived: { $sum: { $ifNull: ["$totalAmountReceived", 0] } },
-              totalBalance: { $sum: { $ifNull: ["$balanceAmount", 0] } },
+              totalAmount: { $sum: { $ifNull: ["$financial.totalAmount", 0] } },
+              totalReceived: { $sum: { $ifNull: ["$financial.totalAmountReceived", 0] } },
+              totalBalance: { $sum: { $ifNull: ["$financial.balanceAmount", 0] } },
               totalLoan: {
                 $sum: {
                   $cond: [
@@ -1172,9 +1172,9 @@ export const getDashboardAnalyticsData = async (req, res) => {
             softwareDevCount: { $sum: { $cond: [{ $eq: ["$course", "software_development"] }, 1, 0] } },
             softwareTestingCount: { $sum: { $cond: [{ $eq: ["$course", "software_testing"] }, 1, 0] } },
             othersCourseCount: { $sum: { $cond: [{ $eq: ["$course", "othersCourse"] }, 1, 0] } },
-            totalAmount: { $sum: { $ifNull: ["$totalAmount", 0] } },
-            totalAmountReceived: { $sum: { $ifNull: ["$totalAmountReceived", 0] } },
-            totalBalanceAmount: { $sum: { $ifNull: ["$balanceAmount", 0] } },
+            totalAmount: { $sum: { $ifNull: ["$financial.totalAmount", 0] } },
+            totalAmountReceived: { $sum: { $ifNull: ["$financial.totalAmountReceived", 0] } },
+            totalBalanceAmount: { $sum: { $ifNull: ["$financial.balanceAmount", 0] } },
             totalLoanAmount: { $sum: { $cond: [{ $eq: ["$loan", true] }, { $ifNull: ["$loanDistrubutedAmount", 0] }, 0] } },
             profileCreatedCount: { $sum: { $cond: [{ $eq: ["$profileCreated", true] }, 1, 0] } },
             videoShootedCount: { $sum: { $cond: [{ $eq: ["$videoShooted", true] }, 1, 0] } },

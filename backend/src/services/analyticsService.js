@@ -47,9 +47,9 @@ class AnalyticsService {
               devCount: { $sum: { $cond: [{ $eq: ["$course", "software_development"] }, 1, 0] } },
               testingCount: { $sum: { $cond: [{ $eq: ["$course", "software_testing"] }, 1, 0] } },
               otherCoursesCount: { $sum: { $cond: [{ $eq: ["$course", "othersCourse"] }, 1, 0] } },
-              totalAmount: { $sum: { $ifNull: ["$financial.totalAmount", 0] } },
-              totalReceived: { $sum: { $ifNull: ["$financial.totalAmountReceived", 0] } },
-              totalBalance: { $sum: { $ifNull: ["$financial.balanceAmount", 0] } },
+              totalAmount: { $sum: { $ifNull: ["$financial.totalAmount", "$totalAmount", 0] } },
+              totalReceived: { $sum: { $ifNull: ["$financial.totalAmountReceived", "$totalAmountReceived", 0] } },
+              totalBalance: { $sum: { $ifNull: ["$financial.balanceAmount", "$balanceAmount", 0] } },
               totalLoan: {
                 $sum: {
                   $reduce: {
@@ -180,9 +180,9 @@ class AnalyticsService {
               interviewSupportCount: { $sum: { $cond: [{ $eq: ["$category", "interview_support"] }, 1, 0] } },
               documentServicesCount: { $sum: { $cond: [{ $eq: ["$category", "document_services"] }, 1, 0] } },
               courseOnlyCount: { $sum: { $cond: [{ $eq: ["$category", "course_only"] }, 1, 0] } },
-              totalAmount: { $sum: { $ifNull: ["$financial.totalAmount", 0] } },
-              totalReceived: { $sum: { $ifNull: ["$financial.totalAmountReceived", 0] } },
-              totalBalance: { $sum: { $ifNull: ["$financial.balanceAmount", 0] } },
+              totalAmount: { $sum: { $ifNull: ["$financial.totalAmount", "$totalAmount", 0] } },
+              totalReceived: { $sum: { $ifNull: ["$financial.totalAmountReceived", "$totalAmountReceived", 0] } },
+              totalBalance: { $sum: { $ifNull: ["$financial.balanceAmount", "$balanceAmount", 0] } },
               totalInterviews: { $sum: { $size: { $ifNull: ["$interviews", []] } } },
               offerLetterCount: { 
                 $sum: { 
@@ -284,9 +284,9 @@ class AnalyticsService {
               interviewSupportCount: { $sum: { $cond: [{ $eq: ["$category", "interview_support"] }, 1, 0] } },
               documentServicesCount: { $sum: { $cond: [{ $eq: ["$category", "document_services"] }, 1, 0] } },
               courseOnlyCount: { $sum: { $cond: [{ $eq: ["$category", "course_only"] }, 1, 0] } },
-              totalAmount: { $sum: { $ifNull: ["$financial.totalAmount", 0] } },
-              totalReceived: { $sum: { $ifNull: ["$financial.totalAmountReceived", 0] } },
-              totalBalance: { $sum: { $ifNull: ["$financial.balanceAmount", 0] } },
+              totalAmount: { $sum: { $ifNull: ["$financial.totalAmount", "$totalAmount", 0] } },
+              totalReceived: { $sum: { $ifNull: ["$financial.totalAmountReceived", "$totalAmountReceived", 0] } },
+              totalBalance: { $sum: { $ifNull: ["$financial.balanceAmount", "$balanceAmount", 0] } },
               totalInterviews: { $sum: { $size: { $ifNull: ["$interviews", []] } } },
               offerLetterCount: { 
                 $sum: { 
@@ -386,9 +386,9 @@ class AnalyticsService {
               interviewSupportCount: { $sum: { $cond: [{ $eq: ["$category", "interview_support"] }, 1, 0] } },
               documentServicesCount: { $sum: { $cond: [{ $eq: ["$category", "document_services"] }, 1, 0] } },
               courseOnlyCount: { $sum: { $cond: [{ $eq: ["$category", "course_only"] }, 1, 0] } },
-              totalAmount: { $sum: { $ifNull: ["$financial.totalAmount", 0] } },
-              totalReceived: { $sum: { $ifNull: ["$financial.totalAmountReceived", 0] } },
-              totalBalance: { $sum: { $ifNull: ["$financial.balanceAmount", 0] } },
+              totalAmount: { $sum: { $ifNull: ["$financial.totalAmount", "$totalAmount", 0] } },
+              totalReceived: { $sum: { $ifNull: ["$financial.totalAmountReceived", "$totalAmountReceived", 0] } },
+              totalBalance: { $sum: { $ifNull: ["$financial.balanceAmount", "$balanceAmount", 0] } },
               totalInterviews: { $sum: { $size: { $ifNull: ["$interviews", []] } } },
               offerLetterCount: { 
                 $sum: { 
@@ -473,9 +473,9 @@ class AnalyticsService {
               inactiveCandidates: { $sum: { $cond: [{ $eq: ["$status", "inactive"] }, 1, 0] } },
               closedCandidates: { $sum: { $cond: [{ $eq: ["$status", "closed"] }, 1, 0] } },
               completedCandidates: { $sum: { $cond: [{ $eq: ["$status", "completed"] }, 1, 0] } },
-              totalAmount: { $sum: { $ifNull: ["$financial.totalAmount", 0] } },
-              totalReceived: { $sum: { $ifNull: ["$financial.totalAmountReceived", 0] } },
-              totalBalance: { $sum: { $ifNull: ["$financial.balanceAmount", 0] } },
+              totalAmount: { $sum: { $ifNull: ["$financial.totalAmount", "$totalAmount", 0] } },
+              totalReceived: { $sum: { $ifNull: ["$financial.totalAmountReceived", "$totalAmountReceived", 0] } },
+              totalBalance: { $sum: { $ifNull: ["$financial.balanceAmount", "$balanceAmount", 0] } },
               totalInterviews: { $sum: { $size: { $ifNull: ["$interviews", []] } } },
               totalOffers: { 
                 $sum: { 
@@ -502,8 +502,8 @@ class AnalyticsService {
             $group: {
               _id: null,
               monthlyCandidates: { $sum: 1 },
-              monthlyAmount: { $sum: { $ifNull: ["$financial.totalAmount", 0] } },
-              monthlyReceived: { $sum: { $ifNull: ["$financial.totalAmountReceived", 0] } }
+              monthlyAmount: { $sum: { $ifNull: ["$financial.totalAmount", "$totalAmount", 0] } },
+              monthlyReceived: { $sum: { $ifNull: ["$financial.totalAmountReceived", "$totalAmountReceived", 0] } }
             }
           }
         ]),
@@ -519,8 +519,8 @@ class AnalyticsService {
             $group: {
               _id: null,
               yearlyCandidates: { $sum: 1 },
-              yearlyAmount: { $sum: { $ifNull: ["$financial.totalAmount", 0] } },
-              yearlyReceived: { $sum: { $ifNull: ["$financial.totalAmountReceived", 0] } }
+              yearlyAmount: { $sum: { $ifNull: ["$financial.totalAmount", "$totalAmount", 0] } },
+              yearlyReceived: { $sum: { $ifNull: ["$financial.totalAmountReceived", "$totalAmountReceived", 0] } }
             }
           }
         ])

@@ -4,7 +4,8 @@ import {
   getDashboardSummary, 
   getDailyAnalytics, 
   getCategoryStats, 
-  getCourseStats 
+  getCourseStats, 
+  getWeeklyAnalytics 
 } from '../controllers/analyticsController.js';
 
 const router = Router();
@@ -14,5 +15,6 @@ router.get('/dashboard-summary', verifyToken, getDashboardSummary);
 router.get('/daily', verifyToken, getDailyAnalytics);
 router.get('/categories', verifyToken, getCategoryStats);
 router.get('/courses', verifyToken, getCourseStats);
+router.get('/weekly', verifyToken, getWeeklyAnalytics);
 
 export default router;

@@ -76,4 +76,22 @@ export const getCourseStats = async (req, res, next) => {
   } catch (error) {
     next(error);
   }
+};
+
+/**
+ * @desc    Get weekly analytics
+ * @route   GET /api/analytics/weekly
+ * @access  Private
+ */
+export const getWeeklyAnalytics = async (req, res, next) => {
+  try {
+    const analytics = await analyticsService.getWeeklyAnalytics();
+    res.status(200).json({
+      success: true,
+      message: 'Weekly analytics retrieved successfully',
+      weeklyData: analytics
+    });
+  } catch (error) {
+    next(error);
+  }
 }; 

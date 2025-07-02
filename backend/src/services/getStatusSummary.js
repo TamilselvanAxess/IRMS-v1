@@ -46,9 +46,9 @@ export const getStatsSummary = async (filter) => {
       {
         $group: {
           _id: null,
-          totalAmount: { $sum: { $ifNull: ['$totalAmount', 0] } },
-          totalAmountReceived: { $sum: { $ifNull: ['$totalAmountReceived', 0] } },
-          balanceAmount: { $sum: { $ifNull: ['$balanceAmount', 0] } },
+          totalAmount: { $sum: { $ifNull: ['$financial.totalAmount', 0] } },
+          totalAmountReceived: { $sum: { $ifNull: ['$financial.totalAmountReceived', 0] } },
+          balanceAmount: { $sum: { $ifNull: ['$financial.balanceAmount', 0] } },
           loanAmount: { $sum: { $cond: [{ $eq: ['$loan', true] }, { $ifNull: ['$loanDistrubutedAmount', 0] }, 0] } }
         }
       }
