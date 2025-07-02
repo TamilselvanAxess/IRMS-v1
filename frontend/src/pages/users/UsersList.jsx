@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Users, Search, Plus, Edit, Trash2, Mail, Phone, X } from 'lucide-react';
+import { Users, Search, Plus, Edit, Trash2, Mail, Phone, X, Eye, EyeOff } from 'lucide-react';
 import apiService from '../../services/api/apiService';
 import { useAppDispatch, useAppSelector } from '../../hooks/redux';
-import { fetchUsers, selectUsers, selectUsersLoading } from '../../store/slices/usersSlice';
+import { fetchUsers, selectUsers, selectUsersLoading, addUser, selectAddUserLoading, selectAddUserError, selectAddUserSuccess, clearAddUserState, updateUser, selectUpdateUserLoading, selectUpdateUserError, selectUpdateUserSuccess, clearUpdateUserState, deleteUser, selectDeleteUserLoading, selectDeleteUserError, selectDeleteUserSuccess, clearDeleteUserState } from '../../store/slices/usersSlice';
 
 const UsersList = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -16,8 +16,21 @@ const UsersList = () => {
     isActive: true,
     isVerified: false
   });
-  const [formLoading, setFormLoading] = useState(false);
-  const [formError, setFormError] = useState('');
+  const addUserLoading = useAppSelector(selectAddUserLoading);
+  const addUserError = useAppSelector(selectAddUserError);
+  const addUserSuccess = useAppSelector(selectAddUserSuccess);
+  const updateUserLoading = useAppSelector(selectUpdateUserLoading);
+  const updateUserError = useAppSelector(selectUpdateUserError);
+  const updateUserSuccess = useAppSelector(selectUpdateUserSuccess);
+  const [editMode, setEditMode] = useState(false);
+  const [editUserId, setEditUserId] = useState(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const deleteUserLoading = useAppSelector(selectDeleteUserLoading);
+  const deleteUserError = useAppSelector(selectDeleteUserError);
+  const deleteUserSuccess = useAppSelector(selectDeleteUserSuccess);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleteUserId, setDeleteUserId] = useState(null);
+  const [deleteUserName, setDeleteUserName] = useState('');
 
   const dispatch = useAppDispatch();
   const users = useAppSelector(selectUsers);
@@ -80,21 +93,82 @@ const UsersList = () => {
     }));
   };
 
-  const handleAddUser = async (e) => {
+  const handleModalSubmit = async (e) => {
     e.preventDefault();
-    setFormLoading(true);
-    setFormError('');
-    try {
-      await apiService.post('/auth/add-user', form);
-      setShowModal(false);
-      setForm({ fullName: '', email: '', password: '', role: 'enroll', isActive: true, isVerified: false });
-      if (typeof UsersList.fetchUsers === 'function') UsersList.fetchUsers();
-    } catch (err) {
-      setFormError(err.message || 'Failed to add user');
-    } finally {
-      setFormLoading(false);
+    if (editMode && editUserId) {
+      dispatch(updateUser({ userId: editUserId, userData: form }));
+    } else {
+      dispatch(addUser(form));
     }
   };
+
+  const handleCloseModal = () => {
+    setShowModal(false);
+    setEditMode(false);
+    setEditUserId(null);
+    dispatch(clearAddUserState());
+    dispatch(clearUpdateUserState());
+    setForm({ fullName: '', email: '', password: '', role: 'enroll', isActive: true, isVerified: false });
+  };
+
+  useEffect(() => {
+    if (addUserSuccess || updateUserSuccess) {
+      handleCloseModal();
+      dispatch(fetchUsers());
+    }
+  }, [addUserSuccess, updateUserSuccess, dispatch]);
+
+  const handleOpenModal = () => {
+    setShowModal(true);
+    setEditMode(false);
+    setEditUserId(null);
+    dispatch(clearAddUserState());
+    dispatch(clearUpdateUserState());
+    setForm({ fullName: '', email: '', password: '', role: 'enroll', isActive: true, isVerified: false });
+  };
+
+  const handleEditUser = (user) => {
+    setShowModal(true);
+    setEditMode(true);
+    setEditUserId(user._id || user.id);
+    dispatch(clearAddUserState());
+    dispatch(clearUpdateUserState());
+    setForm({
+      fullName: user.fullName || '',
+      email: user.email || '',
+      password: '', // Don't prefill password
+      role: user.role || 'enroll',
+      isActive: user.isActive ?? true,
+      isVerified: user.isVerified ?? false,
+    });
+  };
+
+  const handleOpenDeleteModal = (user) => {
+    setShowDeleteModal(true);
+    setDeleteUserId(user._id || user.id);
+    setDeleteUserName(user.fullName || user.name || '');
+    dispatch(clearDeleteUserState());
+  };
+
+  const handleCloseDeleteModal = () => {
+    setShowDeleteModal(false);
+    setDeleteUserId(null);
+    setDeleteUserName('');
+    dispatch(clearDeleteUserState());
+  };
+
+  const handleConfirmDelete = () => {
+    if (deleteUserId) {
+      dispatch(deleteUser(deleteUserId));
+    }
+  };
+
+  useEffect(() => {
+    if (deleteUserSuccess) {
+      handleCloseDeleteModal();
+      dispatch(fetchUsers());
+    }
+  }, [deleteUserSuccess, dispatch]);
 
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900 transition-colors duration-200">
@@ -111,7 +185,7 @@ const UsersList = () => {
                   </h1>
                 </div>
               </div>
-              <button className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors" onClick={() => setShowModal(true)}>
+              <button className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors" onClick={handleOpenModal}>
                 <Plus className="w-4 h-4 mr-2" />
                 Add User
               </button>
@@ -121,49 +195,79 @@ const UsersList = () => {
         {/* Add User Modal */}
         {showModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg w-full max-w-md p-6 relative h-full">
-              <button className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200" onClick={() => setShowModal(false)}>
-                <X className="w-5 h-5" />
-              </button>
-              <h2 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Add New User</h2>
-              <form onSubmit={handleAddUser} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Full Name</label>
-                  <input type="text" name="fullName" value={form.fullName} onChange={handleInputChange} required className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm focus:ring-blue-500 focus:border-blue-500" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Email</label>
-                  <input type="email" name="email" value={form.email} onChange={handleInputChange} required className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm focus:ring-blue-500 focus:border-blue-500" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Password</label>
-                  <input type="password" name="password" value={form.password} onChange={handleInputChange} required minLength={6} className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm focus:ring-blue-500 focus:border-blue-500" />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Role</label>
-                  <select name="role" value={form.role} onChange={handleInputChange} required className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm focus:ring-blue-500 focus:border-blue-500">
-                    <option value="superadmin">Super Admin</option>
-                    <option value="admin">Admin</option>
-                    <option value="finance">Finance</option>
-                    <option value="detail">Detail</option>
-                    <option value="enroll">Enroll</option>
-                  </select>
-                </div>
-                <div className="flex items-center space-x-4">
-                  <label className="flex items-center text-sm text-gray-700 dark:text-gray-300">
-                    <input type="checkbox" name="isActive" checked={form.isActive} onChange={handleInputChange} className="mr-2" />
-                    Active
-                  </label>
-                  <label className="flex items-center text-sm text-gray-700 dark:text-gray-300">
-                    <input type="checkbox" name="isVerified" checked={form.isVerified} onChange={handleInputChange} className="mr-2" />
-                    Verified
-                  </label>
-                </div>
-                {formError && <div className="text-red-500 text-sm">{formError}</div>}
-                <button type="submit" className="w-full py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-60" disabled={formLoading}>
-                  {formLoading ? 'Adding...' : 'Add User'}
+            <div className="flex min-h-screen w-full items-center justify-center">
+              <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-md p-0 relative flex flex-col max-h-[90vh] overflow-y-auto">
+                <button className="absolute top-4 right-4 text-gray-400 hover:text-blue-600 dark:hover:text-blue-300 transition-colors" onClick={handleCloseModal} aria-label="Close">
+                  <X className="w-6 h-6" />
                 </button>
-              </form>
+                <div className="flex items-center gap-2 px-8 pt-8 pb-2">
+                  <Users className="w-7 h-7 text-blue-600 dark:text-blue-400" />
+                  <h2 className="text-xl font-bold text-gray-900 dark:text-white">Add New User</h2>
+                </div>
+                <div className="border-b border-gray-200 dark:border-gray-700 mx-8 mb-2" />
+                <form onSubmit={handleModalSubmit} className="flex-1 flex flex-col justify-between px-8 pb-8 pt-2 space-y-4">
+                  <div className="space-y-3">
+                    <div>
+                      <label htmlFor="adduser-fullName" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Full Name</label>
+                      <input id="adduser-fullName" type="text" name="fullName" value={form.fullName} onChange={handleInputChange} required className="mt-0 block w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-150 px-3 py-2 outline-none" placeholder="Enter full name" autoComplete="off" />
+                    </div>
+                    <div>
+                      <label htmlFor="adduser-email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email</label>
+                      <input id="adduser-email" type="email" name="email" value={form.email} onChange={handleInputChange} required className="mt-0 block w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-150 px-3 py-2 outline-none" placeholder="Enter email address" autoComplete="off" />
+                    </div>
+                    <div className="relative">
+                      <label htmlFor="adduser-password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Password</label>
+                      <input
+                        id="adduser-password"
+                        type={showPassword ? 'text' : 'password'}
+                        name="password"
+                        value={form.password}
+                        onChange={handleInputChange}
+                        required
+                        minLength={6}
+                        className="mt-0 block w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-150 px-3 py-2 outline-none pr-10"
+                        placeholder="Enter password"
+                        autoComplete="new-password"
+                      />
+                      <button
+                        type="button"
+                        tabIndex={-1}
+                        className="absolute right-3 bottom-2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 focus:outline-none"
+                        onClick={() => setShowPassword((v) => !v)}
+                        aria-label={showPassword ? 'Hide password' : 'Show password'}
+                        style={{ padding: 0 }}
+                      >
+                        {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                      </button>
+                    </div>
+                    <div>
+                      <label htmlFor="adduser-role" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Role</label>
+                      <select id="adduser-role" name="role" value={form.role} onChange={handleInputChange} required className="mt-0 block w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-150 px-3 py-2 outline-none">
+                        <option value="admin">Admin</option>
+                        <option value="finance">Finance</option>
+                        <option value="detail">Detail</option>
+                        <option value="enroll">Enroll</option>
+                      </select>
+                    </div>
+                    <div className="flex items-center space-x-6 mt-2">
+                      <label htmlFor="adduser-active" className="flex items-center text-sm text-gray-700 dark:text-gray-300 cursor-pointer">
+                        <input id="adduser-active" type="checkbox" name="isActive" checked={form.isActive} onChange={handleInputChange} className="mr-2 accent-blue-600 dark:accent-blue-400" />
+                        Active
+                      </label>
+                      <label htmlFor="adduser-verified" className="flex items-center text-sm text-gray-700 dark:text-gray-300 cursor-pointer">
+                        <input id="adduser-verified" type="checkbox" name="isVerified" checked={form.isVerified} onChange={handleInputChange} className="mr-2 accent-blue-600 dark:accent-blue-400" />
+                        Verified
+                      </label>
+                    </div>
+                  </div>
+                  <div style={{ minHeight: '24px' }} className="mb-1">
+                    {(addUserError || updateUserError) && <div className="text-red-500 text-sm mt-1">{addUserError || updateUserError}</div>}
+                  </div>
+                  <button type="submit" className="w-full py-2 px-4 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 disabled:opacity-60 mt-2" disabled={addUserLoading || updateUserLoading}>
+                    {editMode ? (updateUserLoading ? 'Saving...' : 'Save Changes') : (addUserLoading ? 'Adding...' : 'Add User')}
+                  </button>
+                </form>
+              </div>
             </div>
           </div>
         )}
@@ -307,10 +411,10 @@ const UsersList = () => {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                           <div className="flex space-x-2">
-                            <button className="text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300">
+                            <button className="text-blue-600 dark:text-blue-400 hover:text-blue-900 dark:hover:text-blue-300" onClick={() => handleEditUser(user)} type="button">
                               <Edit className="w-4 h-4" />
                             </button>
-                            <button className="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300">
+                            <button className="text-red-600 dark:text-red-400 hover:text-red-900 dark:hover:text-red-300" onClick={() => handleOpenDeleteModal(user)} type="button">
                               <Trash2 className="w-4 h-4" />
                             </button>
                           </div>
@@ -341,6 +445,27 @@ const UsersList = () => {
           </div>
         </main>
       </div>
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl w-full max-w-sm p-0 relative flex flex-col max-h-[90vh] overflow-y-auto">
+            <button className="absolute top-4 right-4 text-gray-400 hover:text-blue-600 dark:hover:text-blue-300 transition-colors" onClick={handleCloseDeleteModal} aria-label="Close">
+              <X className="w-6 h-6" />
+            </button>
+            <div className="px-8 pt-8 pb-2">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Delete User</h2>
+              <div className="text-gray-700 dark:text-gray-300 mb-4">Are you sure you want to delete <span className="font-semibold">{deleteUserName}</span>? This action cannot be undone.</div>
+              {deleteUserError && <div className="text-red-500 text-sm mb-2">{deleteUserError}</div>}
+              <div className="flex justify-end gap-3 mt-6">
+                <button type="button" className="px-4 py-2 rounded-md bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors" onClick={handleCloseDeleteModal} disabled={deleteUserLoading}>Cancel</button>
+                <button type="button" className="px-4 py-2 rounded-md bg-red-600 text-white hover:bg-red-700 transition-colors disabled:opacity-60" onClick={handleConfirmDelete} disabled={deleteUserLoading}>
+                  {deleteUserLoading ? 'Deleting...' : 'Delete'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
