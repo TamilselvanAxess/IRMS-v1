@@ -202,7 +202,7 @@ const UsersList = () => {
                 </button>
                 <div className="flex items-center gap-2 px-8 pt-8 pb-2">
                   <Users className="w-7 h-7 text-blue-600 dark:text-blue-400" />
-                  <h2 className="text-xl font-bold text-gray-900 dark:text-white">Add New User</h2>
+                  <h2 className="text-xl font-bold text-gray-900 dark:text-white">{editMode ? 'Edit User' : 'Add New User'}</h2>
                 </div>
                 <div className="border-b border-gray-200 dark:border-gray-700 mx-8 mb-2" />
                 <form onSubmit={handleModalSubmit} className="flex-1 flex flex-col justify-between px-8 pb-8 pt-2 space-y-4">
