@@ -1,31 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { UserCheck, Search, Plus, Calendar, MapPin, Award, Clock, Edit2, Trash2 } from 'lucide-react';
 import apiService from '../../services/api/apiService';
+import { useAppDispatch, useAppSelector } from '../../hooks/redux';
+import { fetchParticipants, selectParticipants, selectParticipantsLoading } from '../../store/slices/participantsSlice';
 
 const Participants = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('all');
-  const [participants, setParticipants] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const dispatch = useAppDispatch();
+  const participants = useAppSelector(selectParticipants);
+  const loading = useAppSelector(selectParticipantsLoading);
 
   useEffect(() => {
-    const fetchParticipants = async () => {
-      try {
-        setLoading(true);
-        const params = [];
-        if (searchTerm) params.push(`search=${encodeURIComponent(searchTerm)}`);
-        if (selectedStatus !== 'all') params.push(`status=${encodeURIComponent(selectedStatus)}`);
-        const query = params.length ? `?${params.join('&')}` : '';
-        const response = await apiService.get(`/participants/get-all-participants${query}`);
-        setParticipants(response.participants || []);
-      } catch (error) {
-        setParticipants([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchParticipants();
-  }, [searchTerm, selectedStatus]);
+    dispatch(fetchParticipants({ search: searchTerm, status: selectedStatus }));
+  }, [dispatch, searchTerm, selectedStatus]);
 
   const filteredParticipants = participants; // Already filtered by backend
 

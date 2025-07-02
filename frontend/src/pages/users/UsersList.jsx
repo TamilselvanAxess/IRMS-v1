@@ -1,27 +1,31 @@
 import React, { useState, useEffect } from 'react';
-import { Users, Search, Plus, Edit, Trash2, Mail, Phone } from 'lucide-react';
+import { Users, Search, Plus, Edit, Trash2, Mail, Phone, X } from 'lucide-react';
 import apiService from '../../services/api/apiService';
+import { useAppDispatch, useAppSelector } from '../../hooks/redux';
+import { fetchUsers, selectUsers, selectUsersLoading } from '../../store/slices/usersSlice';
 
 const UsersList = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedRole, setSelectedRole] = useState('all');
-  const [users, setUsers] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [showModal, setShowModal] = useState(false);
+  const [form, setForm] = useState({
+    fullName: '',
+    email: '',
+    password: '',
+    role: 'enroll',
+    isActive: true,
+    isVerified: false
+  });
+  const [formLoading, setFormLoading] = useState(false);
+  const [formError, setFormError] = useState('');
+
+  const dispatch = useAppDispatch();
+  const users = useAppSelector(selectUsers);
+  const loading = useAppSelector(selectUsersLoading);
 
   useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        setLoading(true);
-        const response = await apiService.get('/auth/get-all-users');
-        setUsers(response.users || []);
-      } catch (error) {
-        setUsers([]);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchUsers();
-  }, []);
+    dispatch(fetchUsers());
+  }, [dispatch]);
 
   const filteredUsers = users.filter(user => {
     const matchesSearch = (user.fullName || user.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -68,6 +72,30 @@ const UsersList = () => {
     return role !== 'admin' && role !== 'finance' && role !== 'superadmin';
   }).length;
 
+  const handleInputChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setForm((prev) => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value
+    }));
+  };
+
+  const handleAddUser = async (e) => {
+    e.preventDefault();
+    setFormLoading(true);
+    setFormError('');
+    try {
+      await apiService.post('/auth/add-user', form);
+      setShowModal(false);
+      setForm({ fullName: '', email: '', password: '', role: 'enroll', isActive: true, isVerified: false });
+      if (typeof UsersList.fetchUsers === 'function') UsersList.fetchUsers();
+    } catch (err) {
+      setFormError(err.message || 'Failed to add user');
+    } finally {
+      setFormLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900 transition-colors duration-200">
       <div>
@@ -83,13 +111,62 @@ const UsersList = () => {
                   </h1>
                 </div>
               </div>
-              <button className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+              <button className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors" onClick={() => setShowModal(true)}>
                 <Plus className="w-4 h-4 mr-2" />
                 Add User
               </button>
             </div>
           </div>
         </header>
+        {/* Add User Modal */}
+        {showModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg w-full max-w-md p-6 relative h-full">
+              <button className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200" onClick={() => setShowModal(false)}>
+                <X className="w-5 h-5" />
+              </button>
+              <h2 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Add New User</h2>
+              <form onSubmit={handleAddUser} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Full Name</label>
+                  <input type="text" name="fullName" value={form.fullName} onChange={handleInputChange} required className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm focus:ring-blue-500 focus:border-blue-500" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Email</label>
+                  <input type="email" name="email" value={form.email} onChange={handleInputChange} required className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm focus:ring-blue-500 focus:border-blue-500" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Password</label>
+                  <input type="password" name="password" value={form.password} onChange={handleInputChange} required minLength={6} className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm focus:ring-blue-500 focus:border-blue-500" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Role</label>
+                  <select name="role" value={form.role} onChange={handleInputChange} required className="mt-1 block w-full rounded-md border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm focus:ring-blue-500 focus:border-blue-500">
+                    <option value="superadmin">Super Admin</option>
+                    <option value="admin">Admin</option>
+                    <option value="finance">Finance</option>
+                    <option value="detail">Detail</option>
+                    <option value="enroll">Enroll</option>
+                  </select>
+                </div>
+                <div className="flex items-center space-x-4">
+                  <label className="flex items-center text-sm text-gray-700 dark:text-gray-300">
+                    <input type="checkbox" name="isActive" checked={form.isActive} onChange={handleInputChange} className="mr-2" />
+                    Active
+                  </label>
+                  <label className="flex items-center text-sm text-gray-700 dark:text-gray-300">
+                    <input type="checkbox" name="isVerified" checked={form.isVerified} onChange={handleInputChange} className="mr-2" />
+                    Verified
+                  </label>
+                </div>
+                {formError && <div className="text-red-500 text-sm">{formError}</div>}
+                <button type="submit" className="w-full py-2 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-60" disabled={formLoading}>
+                  {formLoading ? 'Adding...' : 'Add User'}
+                </button>
+              </form>
+            </div>
+          </div>
+        )}
         {/* Summary Cards */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-6 mb-2">
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
