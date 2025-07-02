@@ -175,7 +175,7 @@ export const loginWithOTP = async (req, res, next) => {
   }
 };
 
-// Forget Password (Send OTP)
+// Forget Password (Send Reset Token)
 export const forgetPassword = async (req, res, next) => {
   try {
     const { email } = req.body;
@@ -187,20 +187,26 @@ export const forgetPassword = async (req, res, next) => {
       return;
     }
 
-    // Generate 6-digit OTP
-    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    // Generate reset token
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const hashedToken = crypto.createHash('sha256').update(resetToken).digest('hex');
     
-    // Save OTP to user
-    user.resetOTP = otp;
-    user.resetOTPExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
-    await user.save();
+    // Save hashed token to user
+    await User.findOneAndUpdate(
+      { email },
+      {
+        resetPasswordToken: hashedToken,
+        resetPasswordTokenExpires: new Date(Date.now() + 60 * 60 * 1000) // 1 hour
+      },
+      { new: true }
+    );
 
-    // Send email with OTP
-    await sendResetPasswordEmail(user.email, otp);
+    // Send email with reset link
+    await sendResetPasswordEmail(user.email, resetToken, user.fullName);
   
     res.json({
-      message: "Login OTP sent to email",
-      ...(process.env.NODE_ENV === "development" && { otp }),
+      message: "Password reset link sent to email",
+      ...(process.env.NODE_ENV === "development" && { resetToken }),
     });
   } catch (error) {
     next(error);
@@ -221,8 +227,7 @@ export const currentUser = async (req, res,next) => {
 };
 
 
-//reset password
-
+// Reset Password
 export const resetPassword = async (req, res) => {
   try {
     const { token } = req.params;
@@ -232,7 +237,7 @@ export const resetPassword = async (req, res) => {
     const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
     const user = await User.findOne({
       resetPasswordToken: hashedToken,
-      resetPasswordExpire: { $gt: Date.now() }, // Check if token is not expired
+      resetPasswordTokenExpires: { $gt: Date.now() }, // Check if token is not expired
     });
 
     if (!user) {
@@ -240,14 +245,19 @@ export const resetPassword = async (req, res) => {
     }
 
     // Hash new password & update
-    user.password = await bcryptjs.hash(password, 10);
-    user.resetPasswordToken = undefined;
-    user.resetPasswordTokenExpires = undefined;
-
-    await user.save();
+    const hashedPassword = await bcryptjs.hash(password, 10);
+    await User.findOneAndUpdate(
+      { _id: user._id },
+      {
+        password: hashedPassword,
+        resetPasswordToken: undefined,
+        resetPasswordTokenExpires: undefined
+      }
+    );
 
     res.json({ success: true, message: "Password updated successfully" });
   } catch (error) {
+    console.error('Reset password error:', error);
     res.status(500).json({ success: false, message: "Server error" });
   }
 };

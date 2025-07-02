@@ -1,7 +1,6 @@
 import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAppSelector } from './hooks/redux';
-import Header from './components/layout/Header';
 import Footer from './components/layout/Footer';
 import Login from './pages/auth/Login';
 import ForgotPassword from './pages/auth/ForgotPassword';

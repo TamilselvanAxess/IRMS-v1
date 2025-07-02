@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Users, Search, Plus, Edit, Trash2, Mail, Phone } from 'lucide-react';
-import Sidebar from '../../components/layout/Sidebar';
 
 const UsersList = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -80,9 +79,8 @@ const UsersList = () => {
 
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900 transition-colors duration-200">
-      <Sidebar />
       
-      <div className="lg:ml-64 transition-all duration-300 ease-in-out">
+      <div>
         {/* Header */}
         <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

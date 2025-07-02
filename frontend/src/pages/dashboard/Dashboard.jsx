@@ -3,7 +3,6 @@ import { useAppDispatch, useAppSelector } from '../../hooks/redux';
 import { logout, setLogoutLoading } from '../../store/slices/authSlice';
 import { toggleTheme, selectIsDark } from '../../store/slices/themeSlice';
 import ThemeToggle from '../../components/common/ThemeToggle';
-import Sidebar from '../../components/layout/Sidebar';
 import { useToast, Spinner } from '../../components/common';
 import { LogOut, User, Settings } from 'lucide-react';
 
@@ -33,9 +32,6 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900 transition-colors duration-200">
-      {/* Sidebar */}
-      <Sidebar />
-
       {/* Logout Loading Overlay */}
       {logoutLoading && (
         <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-sm flex items-center justify-center transition-all duration-500 ease-in-out">
@@ -54,7 +50,7 @@ const Dashboard = () => {
       )}
 
       {/* Main Content Area */}
-      <div className="lg:ml-64 transition-all duration-300 ease-in-out">
+      <div>
         {/* Header */}
         <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
