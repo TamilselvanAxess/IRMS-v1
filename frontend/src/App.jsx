@@ -12,6 +12,7 @@ import Participants from './pages/participants/Participants';
 import Demo from './pages/Demo';
 import Timeline from './pages/dashboard/Timeline';
 import CommonView from './pages/dashboard/CommonView';
+import ViewCandidate from './pages/dashboard/ViewCandidate';
 import DetailUserForm from './pages/dashboard/DetailUserForm';
 import FinanceUserForm from './pages/dashboard/FinanceUserForm';
 import EnrolUserForm from './pages/dashboard/EnrolUserForm';
@@ -84,7 +85,7 @@ function App() {
         <Route path="/dashboard/view/:id" element={
           isAuthenticated ? (
             <ProtectedLayout>
-              <CommonView />
+              <ViewCandidate />
             </ProtectedLayout>
           ) : <Navigate to="/login" replace />
         } />

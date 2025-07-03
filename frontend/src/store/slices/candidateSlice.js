@@ -16,10 +16,25 @@ export const fetchCandidates = createAsyncThunk(
   }
 );
 
+// Async thunk to fetch a single candidate by ID
+export const fetchCandidateById = createAsyncThunk(
+  'candidates/fetchCandidateById',
+  async (candidateId, { rejectWithValue }) => {
+    try {
+      const response = await apiService.get(`/candidates/get-candidate-by-id/${candidateId}`);
+      // Backend returns { success, message, data: candidate }
+      return response.data || null;
+    } catch (error) {
+      return rejectWithValue(error.message || 'Failed to fetch candidate');
+    }
+  }
+);
+
 const candidateSlice = createSlice({
   name: 'candidates',
   initialState: {
     candidates: [],
+    selectedCandidate: null,
     loading: false,
     error: null,
   },
@@ -37,6 +52,20 @@ const candidateSlice = createSlice({
       .addCase(fetchCandidates.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
+      })
+      .addCase(fetchCandidateById.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+        state.selectedCandidate = null;
+      })
+      .addCase(fetchCandidateById.fulfilled, (state, action) => {
+        state.loading = false;
+        state.selectedCandidate = action.payload;
+      })
+      .addCase(fetchCandidateById.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+        state.selectedCandidate = null;
       });
   },
 });
@@ -44,5 +73,6 @@ const candidateSlice = createSlice({
 export const selectCandidates = (state) => state.candidates.candidates;
 export const selectCandidatesLoading = (state) => state.candidates.loading;
 export const selectCandidatesError = (state) => state.candidates.error;
+export const selectSelectedCandidate = (state) => state.candidates.selectedCandidate;
 
 export default candidateSlice.reducer; 

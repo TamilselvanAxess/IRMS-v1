@@ -1,4 +1,4 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice, createSelector } from '@reduxjs/toolkit';
 
 const getInitialTheme = () => {
   // Check localStorage for saved theme preference
@@ -96,10 +96,9 @@ export const selectBranding = (state) => state.theme.branding;
 export const selectColorScheme = (state) => state.theme.colorScheme;
 export const selectIsDark = (state) => state.theme.theme === 'dark';
 export const selectIsLight = (state) => state.theme.theme === 'light';
-export const selectThemeConfig = (state) => ({
-  theme: state.theme.theme,
-  branding: state.theme.branding,
-  colorScheme: state.theme.colorScheme,
-});
+export const selectThemeConfig = createSelector(
+  [selectTheme, selectBranding, selectColorScheme],
+  (theme, branding, colorScheme) => ({ theme, branding, colorScheme })
+);
 
 export default themeSlice.reducer; 
