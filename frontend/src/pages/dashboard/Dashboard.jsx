@@ -46,6 +46,7 @@ const Dashboard = () => {
   const [filterOnBoarded, setFilterOnBoarded] = useState('');
   const [refreshing, setRefreshing] = useState(false);
   const [searchKeyword, setSearchKeyword] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
 
   // Map candidate data to table row format
   const tableData = useMemo(() => {
@@ -75,27 +76,55 @@ const Dashboard = () => {
 
   // Filtered data
   const filteredData = useMemo(() => {
-    return tableData.filter(row =>
-      (filterCourse ? row.course === filterCourse : true) &&
-      (filterCategory ? row.category === filterCategory : true) &&
-      (filterStatus ? row.status === filterStatus : true) &&
-      (filterStage ? row.stage === filterStage : true) &&
-      (filterOnBoarded ? (filterOnBoarded === 'true' ? row.onBoarded : !row.onBoarded) : true) &&
-      (searchKeyword
-        ? [
-            row.studentId,
-            row.name,
-            row.category,
-            row.course,
-            row.status,
-            row.stage,
-            row.loan
-          ]
-            .join(' ')
-            .toLowerCase()
-            .includes(searchKeyword.toLowerCase())
-        : true)
-    );
+    return tableData.filter(row => {
+      // Search filter - check all fields
+      if (searchKeyword) {
+        const searchStr = searchKeyword.toLowerCase();
+        const rowValues = [
+          row.studentId,
+          row.name,
+          row.category,
+          row.course,
+          row.status,
+          row.stage,
+          row.loan
+        ].map(val => String(val).toLowerCase());
+        
+        if (!rowValues.some(val => val.includes(searchStr))) {
+          return false;
+        }
+      }
+
+      // Course filter
+      if (filterCourse && row.course !== filterCourse) {
+        return false;
+      }
+
+      // Category filter
+      if (filterCategory && row.category !== filterCategory) {
+        return false;
+      }
+
+      // Status filter
+      if (filterStatus && row.status !== filterStatus) {
+        return false;
+      }
+
+      // Stage filter
+      if (filterStage && row.stage !== filterStage) {
+        return false;
+      }
+
+      // OnBoarded filter
+      if (filterOnBoarded !== '') {
+        const isOnBoarded = filterOnBoarded === 'true';
+        if (row.onBoarded !== isOnBoarded) {
+          return false;
+        }
+      }
+
+      return true;
+    });
   }, [tableData, filterCourse, filterCategory, filterStatus, filterStage, filterOnBoarded, searchKeyword]);
 
   if (!isAuthenticated) {
@@ -278,74 +307,78 @@ const Dashboard = () => {
   ];
 
   // Refresh handler
-  const handleRefresh = () => {
+  const handleRefresh = async () => {
     setRefreshing(true);
-    setTimeout(() => {
-      setFilterCourse('');
-      setFilterCategory('');
-      setFilterStatus('');
-      setFilterStage('');
-      setFilterOnBoarded('');
-      setSearchKeyword('');
-      setRefreshing(false);
-    }, 800); // Simulate refresh
+    // Reset all filters
+    setFilterCourse('');
+    setFilterCategory('');
+    setFilterStatus('');
+    setFilterStage('');
+    setFilterOnBoarded('');
+    setSearchKeyword('');
+    // Reset pagination
+    setCurrentPage(1);
+    // Fetch fresh data
+    try {
+      await dispatch(fetchCandidates());
+    } catch (error) {
+      console.error('Error refreshing data:', error);
+    }
+    setRefreshing(false);
   };
 
   return (
     <div className="space-y-6">
-      {/* Dashboard Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-            Dashboard
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-1">
-            Welcome back, {user?.name || user?.email || 'User'}! Here's what's happening today.
-          </p>
-            </div>
-        <div className="text-right">
-          <p className="text-sm text-gray-500 dark:text-gray-400">Last updated</p>
-          <p className="text-sm font-medium text-gray-900 dark:text-white">
-            {new Date().toLocaleDateString('en-US', { 
-              weekday: 'long', 
-              year: 'numeric', 
-              month: 'long', 
-              day: 'numeric' 
-            })}
+      {/* Header */}
+      <Card variant="glass">
+        <Card.Header>
+          <Card.Title>Dashboard</Card.Title>
+          <Card.Subtitle>Welcome back, {user?.name || user?.email || 'User'}! Here's what's happening today.</Card.Subtitle>
+          <div className="text-right ml-auto">
+            <p className="text-sm text-gray-500 dark:text-gray-400">Last updated</p>
+            <p className="text-sm font-medium text-gray-900 dark:text-white">
+              {new Date().toLocaleDateString('en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+              })}
             </p>
           </div>
-        </div>
-
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6">
-        {statsCards.map((card, index) => {
-          const Icon = card.icon;
-          const colorClasses = {
-            blue: 'text-blue-600 dark:text-blue-400',
-            green: 'text-green-600 dark:text-green-400',
-            purple: 'text-purple-600 dark:text-purple-400',
-            orange: 'text-orange-600 dark:text-orange-400',
-            emerald: 'text-emerald-600 dark:text-emerald-400'
-          };
-          return (
-            <Card key={index} variant="glass" className="p-4 md:p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs md:text-sm font-medium text-gray-600 dark:text-gray-400">
-                    {card.title}
-                  </p>
-                  <p className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white mt-2">
-                    {card.value}
-                  </p>
-                </div>
-                <div className={`p-2 md:p-3 rounded-xl bg-gray-50 dark:bg-gray-800/60 ${colorClasses[card.color]}`}>
-                  <Icon className="w-5 h-5 md:w-6 md:h-6" />
-                </div>
-              </div>
-            </Card>
-          );
-        })}
-      </div>
+        </Card.Header>
+        <Card.Content>
+          {/* Stats Cards */}
+          <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6 mb-6">
+            {statsCards.map((card, index) => {
+              const Icon = card.icon;
+              const colorClasses = {
+                blue: 'text-blue-600 dark:text-blue-400',
+                green: 'text-green-600 dark:text-green-400',
+                purple: 'text-purple-600 dark:text-purple-400',
+                orange: 'text-orange-600 dark:text-orange-400',
+                emerald: 'text-emerald-600 dark:text-emerald-400'
+              };
+              return (
+                <Card key={index} variant="glass" className="p-4 md:p-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs md:text-sm font-medium text-gray-600 dark:text-gray-400">
+                        {card.title}
+                      </p>
+                      <p className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white mt-2">
+                        {card.value}
+                      </p>
+                    </div>
+                    <div className={`p-2 md:p-3 rounded-xl bg-gray-50 dark:bg-gray-800/60 ${colorClasses[card.color]}`}>
+                      <Icon className="w-5 h-5 md:w-6 md:h-6" />
+                    </div>
+                  </div>
+                </Card>
+              );
+            })}
+          </div>
+        </Card.Content>
+      </Card>
 
       {/* Students Table */}
       <Card variant="glass">
@@ -396,6 +429,16 @@ const Dashboard = () => {
             </select>
             <select
               className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+              value={filterStage}
+              onChange={e => setFilterStage(e.target.value)}
+            >
+              <option value="">All Stages</option>
+              {stageOptions.map(option => (
+                <option key={option} value={option}>{option}</option>
+              ))}
+            </select>
+            <select
+              className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
               value={filterOnBoarded}
               onChange={e => setFilterOnBoarded(e.target.value)}
             >
@@ -418,14 +461,18 @@ const Dashboard = () => {
               <span>Refresh</span>
             </button>
           </div>
-          <Table
-            data={filteredData}
-            columns={tableColumns}
-            variant="glass"
-            pagination={true}
-            itemsPerPage={5}
-            className="mt-4"
-          />
+          <div className="min-h-[500px]">
+            <Table
+              data={filteredData}
+              columns={tableColumns}
+              variant="glass"
+              pagination={true}
+              itemsPerPage={10}
+              className="mt-4"
+              currentPage={currentPage}
+              onPageChange={setCurrentPage}
+            />
+          </div>
         </Card.Content>
       </Card>
     </div>

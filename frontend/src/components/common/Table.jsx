@@ -198,28 +198,24 @@ const Table = ({
       <div className="overflow-x-auto">
         <table className={tableClasses} {...props}>
           <thead>
-            <tr className={`${isDark ? 'bg-gray-700/30' : 'bg-gray-50'}`}>
+            <tr className={`${isDark ? 'bg-gray-800/50' : 'bg-gray-50'}`}>
               {selectable && (
-                <th className="w-12 p-4">
+                <th className="w-10 px-4 py-3 text-left">
                   <input
                     type="checkbox"
                     checked={selectedRows.size === paginatedData.length && paginatedData.length > 0}
                     onChange={handleSelectAll}
-                    className={`w-4 h-4 rounded border-2 ${
-                      isDark 
-                        ? 'bg-gray-600 border-gray-500 text-blue-400' 
-                        : 'bg-white border-gray-300 text-blue-600'
-                    } focus:ring-blue-500`}
+                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                   />
                 </th>
               )}
               {columns.map((column) => (
                 <th
                   key={column.key}
-                  className={`p-4 text-left font-semibold ${
-                    isDark ? 'text-gray-200' : 'text-gray-700'
-                  } ${column.sortable !== false && sortable ? 'cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600/30' : ''}`}
                   onClick={() => handleSort(column.key)}
+                  className={`px-4 py-3 text-left font-semibold ${
+                    isDark ? 'text-gray-200' : 'text-gray-700'
+                  } ${sortable && column.sortable !== false ? 'cursor-pointer select-none' : ''}`}
                 >
                   <div className="flex items-center">
                     {column.label}
@@ -229,64 +225,55 @@ const Table = ({
               ))}
             </tr>
           </thead>
-          <tbody>
+          <tbody className="divide-y ${isDark ? 'divide-gray-700/50' : 'divide-gray-200'}">
             {loading ? (
               <tr>
-                <td 
-                  colSpan={columns.length + (selectable ? 1 : 0)} 
-                  className="p-8 text-center"
+                <td
+                  colSpan={columns.length + (selectable ? 1 : 0)}
+                  className="px-4 py-8 text-center h-[300px]"
                 >
-                  <div className="flex items-center justify-center">
-                    <div className="w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin mr-3"></div>
-                    <span className={isDark ? 'text-gray-300' : 'text-gray-600'}>Loading...</span>
+                  <div className="flex items-center justify-center h-full">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
                   </div>
                 </td>
               </tr>
             ) : paginatedData.length === 0 ? (
               <tr>
-                <td 
-                  colSpan={columns.length + (selectable ? 1 : 0)} 
-                  className="p-8 text-center"
+                <td
+                  colSpan={columns.length + (selectable ? 1 : 0)}
+                  className="px-4 py-8 text-center h-[300px]"
                 >
-                  <div className="flex flex-col items-center">
-                    <div className={`w-12 h-12 rounded-full ${isDark ? 'bg-gray-700' : 'bg-gray-100'} flex items-center justify-center mb-3`}>
-                      <Filter className={`w-6 h-6 ${isDark ? 'text-gray-400' : 'text-gray-500'}`} />
-                    </div>
-                    <span className={isDark ? 'text-gray-400' : 'text-gray-500'}>{emptyMessage}</span>
+                  <div className="flex flex-col items-center justify-center h-full gap-2">
+                    <MoreHorizontal className="w-8 h-8 text-gray-400" />
+                    <span className={isDark ? 'text-gray-400' : 'text-gray-500'}>
+                      {emptyMessage}
+                    </span>
                   </div>
                 </td>
               </tr>
             ) : (
-              paginatedData.map((row, index) => (
+              paginatedData.map((row, rowIndex) => (
                 <tr
-                  key={row.id || row._id || index}
-                  className={`
-                    transition-colors duration-200
-                    ${isDark ? 'border-b border-gray-700/30' : 'border-b border-gray-200'}
-                    ${onRowClick ? 'cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700/20' : ''}
-                    ${selectedRows.has(row.id || row._id) ? (isDark ? 'bg-blue-900/20' : 'bg-blue-50') : ''}
-                  `}
+                  key={row.id || row._id || rowIndex}
                   onClick={() => onRowClick?.(row)}
+                  className={`${
+                    onRowClick ? 'cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50' : ''
+                  } transition-colors duration-150`}
                 >
                   {selectable && (
-                    <td className="w-12 p-4">
+                    <td className="w-10 px-4 py-3">
                       <input
                         type="checkbox"
                         checked={selectedRows.has(row.id || row._id)}
                         onChange={() => handleRowSelect(row.id || row._id)}
-                        onClick={(e) => e.stopPropagation()}
-                        className={`w-4 h-4 rounded border-2 ${
-                          isDark 
-                            ? 'bg-gray-600 border-gray-500 text-blue-400' 
-                            : 'bg-white border-gray-300 text-blue-600'
-                        } focus:ring-blue-500`}
+                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                       />
                     </td>
                   )}
                   {columns.map((column) => (
                     <td
                       key={column.key}
-                      className={`p-4 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}
+                      className={`px-4 py-3 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}
                     >
                       {renderCell(row, column)}
                     </td>
