@@ -22,6 +22,16 @@ const Sidebar = ({ open, onClose, sidebarOpen, toggleSidebar }) => {
   
   const [showLogoutModal, setShowLogoutModal] = useState(false);
 
+  // Role-based navLinks filtering
+  let filteredNavLinks = navLinks;
+  const role = (user?.role || '').toLowerCase();
+  if (role === 'finance') {
+    filteredNavLinks = navLinks.filter(link => link.name === 'Analytics Dashboard' || link.name === 'Dashboard');
+  } else if (["enroll", "detail", "details"].includes(role)) {
+    filteredNavLinks = navLinks.filter(link => link.name === 'Dashboard');
+  }
+  // superadmin and admin see all, others see only allowed links
+
   const handleLogoutClick = () => {
     setShowLogoutModal(true);
   };
@@ -103,7 +113,7 @@ const Sidebar = ({ open, onClose, sidebarOpen, toggleSidebar }) => {
 
           {/* Navigation */}
           <nav className="flex-1 px-4 py-6 space-y-2">
-            {navLinks.map((link) => {
+            {filteredNavLinks.map((link) => {
               const isActive = location.pathname.startsWith(link.to);
               return (
                 <div
