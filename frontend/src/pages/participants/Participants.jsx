@@ -45,6 +45,7 @@ const Participants = () => {
   const deleteParticipantLoading = useAppSelector(selectDeleteParticipantLoading);
   const deleteParticipantError = useAppSelector(selectDeleteParticipantError);
   const deleteParticipantSuccess = useAppSelector(selectDeleteParticipantSuccess);
+  const [empIdNumber, setEmpIdNumber] = useState('');
 
   useEffect(() => {
     dispatch(fetchParticipants({ search: searchTerm, status: selectedStatus }));
@@ -85,6 +86,22 @@ const Participants = () => {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleEmpIdNumberChange = (e) => {
+    const value = e.target.value.replace(/\D/g, ''); // Only numbers
+    setEmpIdNumber(value);
+    setForm((prev) => ({ ...prev, empId: getEmpIdPrefix(form.role) + value }));
+  };
+
+  const getEmpIdPrefix = (role) => {
+    switch (role) {
+      case 'trainer': return 'TR';
+      case 'proxy': return 'PX';
+      case 'referrer': return 'RF';
+      case 'agent': return 'AG';
+      default: return '';
+    }
   };
 
   const handleModalSubmit = (e) => {
@@ -161,6 +178,12 @@ const Participants = () => {
       dispatch(fetchParticipants({ search: searchTerm, status: selectedStatus }));
     }
   }, [deleteParticipantSuccess, dispatch]);
+
+  useEffect(() => {
+    // Reset empIdNumber if role changes
+    setEmpIdNumber('');
+    setForm((prev) => ({ ...prev, empId: '' }));
+  }, [form.role]);
 
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900 transition-colors duration-200">
@@ -422,15 +445,32 @@ const Participants = () => {
                   </div>
                   <div>
                     <label htmlFor="participant-empId" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Emp ID</label>
-                    <input id="participant-empId" type="text" name="empId" value={form.empId} onChange={handleInputChange} required className="mt-0 block w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-150 px-3 py-2 outline-none" placeholder="Enter employee ID" autoComplete="off" />
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        value={getEmpIdPrefix(form.role)}
+                        readOnly
+                        className="w-14 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm px-3 py-2 outline-none text-center font-semibold"
+                        tabIndex={-1}
+                      />
+                      <input
+                        id="participant-empId"
+                        type="text"
+                        name="empIdNumber"
+                        value={empIdNumber}
+                        onChange={handleEmpIdNumberChange}
+                        required={!!form.role}
+                        minLength={4}
+                        maxLength={4}
+                        pattern="\\d{4}"
+                        className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-150 px-3 py-2 outline-none"
+                        placeholder="Enter 4 digit number"
+                        autoComplete="off"
+                        disabled={!form.role}
+                      />
+                    </div>
                     <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                      Employee ID must be unique. Suggested format: {form.role ? 
-                        form.role === 'trainer' ? 'TR' + Math.floor(Math.random() * 9000 + 1000) :
-                        form.role === 'proxy' ? 'PX' + Math.floor(Math.random() * 9000 + 1000) :
-                        form.role === 'referrer' ? 'RF' + Math.floor(Math.random() * 9000 + 1000) :
-                        form.role === 'agent' ? 'AG' + Math.floor(Math.random() * 9000 + 1000) :
-                        'Select role first'
-                      : 'Select role first'}
+                      Employee ID must be unique. Suggested format: {form.role ? getEmpIdPrefix(form.role) + '1234' : 'Select role first'}
                     </p>
                   </div>
                   <div>
