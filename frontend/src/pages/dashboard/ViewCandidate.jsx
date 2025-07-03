@@ -123,6 +123,16 @@ const ViewCandidate = () => {
             {renderKeyValue('Spouse', candidate.contacts?.spouse?.name)}
             {renderKeyValue('Spouse Phone', candidate.contacts?.spouse?.phone)}
           </Section>
+          {/* Training Details section */}
+          {candidate.training && (
+            <Section title="Training Details" icon={<Book className="w-5 h-5" />}>
+              {renderKeyValue('Trainer Name', candidate.training.trainerName)}
+              {renderKeyValue('Slot Time', candidate.training.slotTime)}
+              {renderKeyValue('Class Start Date', candidate.training.classStartDate ? new Date(candidate.training.classStartDate).toLocaleDateString() : undefined)}
+              {renderKeyValue('Course End Date', candidate.training.courseEndDate ? new Date(candidate.training.courseEndDate).toLocaleDateString() : undefined)}
+              {renderKeyValue('Stage', candidate.training.stage)}
+            </Section>
+          )}
           {/* Detail user and above */}
           {canViewDetail && (
             <>

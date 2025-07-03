@@ -30,6 +30,20 @@ export const fetchCandidateById = createAsyncThunk(
   }
 );
 
+// Async thunk to update a candidate by ID
+export const updateCandidateById = createAsyncThunk(
+  'candidates/updateCandidateById',
+  async ({ candidateId, candidateData }, { rejectWithValue }) => {
+    try {
+      const response = await apiService.put(`/candidates/update-candidate/${candidateId}`, candidateData);
+      // Backend returns { success, message, data: candidate }
+      return response.data || null;
+    } catch (error) {
+      return rejectWithValue(error.message || 'Failed to update candidate');
+    }
+  }
+);
+
 const candidateSlice = createSlice({
   name: 'candidates',
   initialState: {
@@ -66,6 +80,18 @@ const candidateSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
         state.selectedCandidate = null;
+      })
+      .addCase(updateCandidateById.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(updateCandidateById.fulfilled, (state, action) => {
+        state.loading = false;
+        state.selectedCandidate = action.payload;
+      })
+      .addCase(updateCandidateById.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
       });
   },
 });
