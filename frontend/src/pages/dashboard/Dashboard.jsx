@@ -329,56 +329,59 @@ const Dashboard = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <Card variant="glass">
-        <Card.Header>
-          <Card.Title>Dashboard</Card.Title>
-          <Card.Subtitle>Welcome back, {user?.name || user?.email || 'User'}! Here's what's happening today.</Card.Subtitle>
-          <div className="text-right ml-auto">
-            <p className="text-sm text-gray-500 dark:text-gray-400">Last updated</p>
-            <p className="text-sm font-medium text-gray-900 dark:text-white">
-              {new Date().toLocaleDateString('en-US', {
-                weekday: 'long',
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric'
-              })}
+      {/* Dashboard Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+            Dashboard
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-1">
+            Welcome back, {user?.name || user?.email || 'User'}! Here's what's happening today.
+          </p>
+            </div>
+        <div className="text-right">
+          <p className="text-sm text-gray-500 dark:text-gray-400">Last updated</p>
+          <p className="text-sm font-medium text-gray-900 dark:text-white">
+            {new Date().toLocaleDateString('en-US', { 
+              weekday: 'long', 
+              year: 'numeric', 
+              month: 'long', 
+              day: 'numeric' 
+            })}
             </p>
           </div>
-        </Card.Header>
-        <Card.Content>
-          {/* Stats Cards */}
-          <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6 mb-6">
-            {statsCards.map((card, index) => {
-              const Icon = card.icon;
-              const colorClasses = {
-                blue: 'text-blue-600 dark:text-blue-400',
-                green: 'text-green-600 dark:text-green-400',
-                purple: 'text-purple-600 dark:text-purple-400',
-                orange: 'text-orange-600 dark:text-orange-400',
-                emerald: 'text-emerald-600 dark:text-emerald-400'
-              };
-              return (
-                <Card key={index} variant="glass" className="p-4 md:p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-xs md:text-sm font-medium text-gray-600 dark:text-gray-400">
-                        {card.title}
-                      </p>
-                      <p className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white mt-2">
-                        {card.value}
-                      </p>
-                    </div>
-                    <div className={`p-2 md:p-3 rounded-xl bg-gray-50 dark:bg-gray-800/60 ${colorClasses[card.color]}`}>
-                      <Icon className="w-5 h-5 md:w-6 md:h-6" />
-                    </div>
-                  </div>
-                </Card>
-              );
-            })}
-          </div>
-        </Card.Content>
-      </Card>
+        </div>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6">
+        {statsCards.map((card, index) => {
+          const Icon = card.icon;
+          const colorClasses = {
+            blue: 'text-blue-600 dark:text-blue-400',
+            green: 'text-green-600 dark:text-green-400',
+            purple: 'text-purple-600 dark:text-purple-400',
+            orange: 'text-orange-600 dark:text-orange-400',
+            emerald: 'text-emerald-600 dark:text-emerald-400'
+          };
+          return (
+            <Card key={index} variant="glass" className="p-4 md:p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs md:text-sm font-medium text-gray-600 dark:text-gray-400">
+                    {card.title}
+                  </p>
+                  <p className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white mt-2">
+                    {card.value}
+                  </p>
+                </div>
+                <div className={`p-2 md:p-3 rounded-xl bg-gray-50 dark:bg-gray-800/60 ${colorClasses[card.color]}`}>
+                  <Icon className="w-5 h-5 md:w-6 md:h-6" />
+                </div>
+              </div>
+            </Card>
+          );
+        })}
+      </div>
 
       {/* Students Table */}
       <Card variant="glass">
