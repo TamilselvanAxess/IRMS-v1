@@ -24,13 +24,17 @@ import {
   Clock
 } from 'lucide-react';
 import { fetchCandidates, selectCandidates, selectCandidatesLoading, selectCandidatesError } from '../../store/slices/candidateSlice';
+import { useNavigate } from 'react-router-dom';
+import DetailUserForm from './DetailUserForm';
+import FinanceUserForm from './FinanceUserForm';
 
 const Dashboard = () => {
   const dispatch = useAppDispatch();
-  const { user, isAuthenticated, role } = useAppSelector((state) => state.auth);
+  const { user, isAuthenticated } = useAppSelector((state) => state.auth);
   const candidates = useAppSelector(selectCandidates);
   const candidatesLoading = useAppSelector(selectCandidatesLoading);
   const candidatesError = useAppSelector(selectCandidatesError);
+  const navigate = useNavigate();
 
   // Fetch candidates on mount
   useEffect(() => {
@@ -284,59 +288,114 @@ const Dashboard = () => {
       key: 'actions',
       label: 'Actions',
       sortable: false,
-      render: () => {
+      render: (value, row) => {
         const role = (user?.role || '').toLowerCase();
-        // Role-based actions
+        const id = row.studentId;
+        // Timeline and View icons for all users
+        const timelineBtn = (
+          <button
+            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition"
+            title="Timeline"
+            aria-label="Timeline"
+            onClick={() => navigate(`/dashboard/timeline/${id}`)}
+          >
+            <Clock className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+          </button>
+        );
+        const viewBtn = (
+          <button
+            className="p-2 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900 transition"
+            title="View"
+            aria-label="View"
+            onClick={() => navigate(`/dashboard/view/${id}`)}
+          >
+            <Eye className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+          </button>
+        );
         if (["admin", "superadmin"].includes(role)) {
           return (
             <div className="flex gap-2">
-              {/* Timeline icon */}
-              <button className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition" title="Timeline" aria-label="Timeline">
-                {/* Replace with actual Timeline component later */}
-                <Clock className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
-              </button>
-              {/* View icon */}
-              <button className="p-2 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900 transition" title="View" aria-label="View">
-                {/* Replace with actual View component later */}
-                <Eye className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-              </button>
-              {/* Edit icons (3) */}
-              <button className="p-2 rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900 transition" title="Edit 1" aria-label="Edit 1">
-                {/* Replace with actual Edit component later */}
+              {timelineBtn}
+              {viewBtn}
+              {/* Edit icons */}
+              <button
+                className="p-2 rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900 transition"
+                title="Edit Enroll"
+                aria-label="Edit Enroll"
+                onClick={() => navigate(`/dashboard/edit/${id}`)}
+              >
                 <Pencil className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
               </button>
-              <button className="p-2 rounded-lg hover:bg-yellow-100 dark:hover:bg-yellow-900 transition" title="Edit 2" aria-label="Edit 2">
-                {/* Replace with actual Edit2 component later */}
+              <button
+                className="p-2 rounded-lg hover:bg-yellow-100 dark:hover:bg-yellow-900 transition"
+                title="Edit Detail"
+                aria-label="Edit Detail"
+                onClick={() => navigate(`/dashboard/edit-detail/${id}`)}
+              >
                 <Pencil className="w-4 h-4 text-yellow-600 dark:text-yellow-400" />
               </button>
-              <button className="p-2 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-900 transition" title="Edit 3" aria-label="Edit 3">
-                {/* Replace with actual Edit3 component later */}
+              <button
+                className="p-2 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-900 transition"
+                title="Edit Finance"
+                aria-label="Edit Finance"
+                onClick={() => navigate(`/dashboard/edit-finance/${id}`)}
+              >
                 <Pencil className="w-4 h-4 text-purple-600 dark:text-purple-400" />
               </button>
             </div>
           );
-        } else if (["enroll", "dashboard", "detail", "details"].includes(role)) {
+        } else if (role === "enroll") {
           return (
             <div className="flex gap-2">
-              {/* Timeline icon */}
-              <button className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition" title="Timeline" aria-label="Timeline">
-                {/* Replace with actual Timeline component later */}
-                <Clock className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
-              </button>
-              {/* View icon */}
-              <button className="p-2 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900 transition" title="View" aria-label="View">
-                {/* Replace with actual View component later */}
-                <Eye className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-              </button>
-              {/* Single Edit icon */}
-              <button className="p-2 rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900 transition" title="Edit" aria-label="Edit">
-                {/* Replace with actual Edit component later */}
+              {timelineBtn}
+              {viewBtn}
+              <button
+                className="p-2 rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900 transition"
+                title="Edit Enroll"
+                aria-label="Edit Enroll"
+                onClick={() => navigate(`/dashboard/edit/${id}`)}
+              >
                 <Pencil className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
               </button>
             </div>
           );
+        } else if (role === "detail" || role === "details") {
+          return (
+            <div className="flex gap-2">
+              {timelineBtn}
+              {viewBtn}
+              <button
+                className="p-2 rounded-lg hover:bg-yellow-100 dark:hover:bg-yellow-900 transition"
+                title="Edit Detail"
+                aria-label="Edit Detail"
+                onClick={() => navigate(`/dashboard/edit-detail/${id}`)}
+              >
+                <Pencil className="w-4 h-4 text-yellow-600 dark:text-yellow-400" />
+              </button>
+            </div>
+          );
+        } else if (role === "finance") {
+          return (
+            <div className="flex gap-2">
+              {timelineBtn}
+              {viewBtn}
+              <button
+                className="p-2 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-900 transition"
+                title="Edit Finance"
+                aria-label="Edit Finance"
+                onClick={() => navigate(`/dashboard/edit-finance/${id}`)}
+              >
+                <Pencil className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+              </button>
+            </div>
+          );
         } else {
-          return null;
+          return (
+            <div className="flex gap-2">
+              {timelineBtn}
+              {viewBtn}
+            </div>
+          );
         }
       }
     }

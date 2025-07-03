@@ -10,6 +10,11 @@ import AnalyticsDashboard from './pages/analytics/AnalyticsDashboard';
 import UsersList from './pages/users/UsersList';
 import Participants from './pages/participants/Participants';
 import Demo from './pages/Demo';
+import Timeline from './pages/dashboard/Timeline';
+import CommonView from './pages/dashboard/CommonView';
+import DetailUserForm from './pages/dashboard/DetailUserForm';
+import FinanceUserForm from './pages/dashboard/FinanceUserForm';
+import EnrolUserForm from './pages/dashboard/EnrolUserForm';
 
 function ProtectedLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -68,6 +73,41 @@ function App() {
             <Dashboard />
           </ProtectedLayout>
         ) : <Navigate to="/login" replace />
+        } />
+        <Route path="/dashboard/timeline/:id" element={
+          isAuthenticated ? (
+            <ProtectedLayout>
+              <Timeline />
+            </ProtectedLayout>
+          ) : <Navigate to="/login" replace />
+        } />
+        <Route path="/dashboard/view/:id" element={
+          isAuthenticated ? (
+            <ProtectedLayout>
+              <CommonView />
+            </ProtectedLayout>
+          ) : <Navigate to="/login" replace />
+        } />
+        <Route path="/dashboard/edit/:id" element={
+          isAuthenticated ? (
+            <ProtectedLayout>
+              <EnrolUserForm />
+            </ProtectedLayout>
+          ) : <Navigate to="/login" replace />
+        } />
+        <Route path="/dashboard/edit-detail/:id" element={
+          isAuthenticated ? (
+            <ProtectedLayout>
+              <DetailUserForm />
+            </ProtectedLayout>
+          ) : <Navigate to="/login" replace />
+        } />
+        <Route path="/dashboard/edit-finance/:id" element={
+          isAuthenticated ? (
+            <ProtectedLayout>
+              <FinanceUserForm />
+            </ProtectedLayout>
+          ) : <Navigate to="/login" replace />
         } />
         <Route path="/analytics" element={
         isAuthenticated ? (
