@@ -1,5 +1,5 @@
-import React, { useState, useMemo } from 'react';
-import { useAppSelector } from '../../hooks/redux';
+import React, { useState, useMemo, useEffect } from 'react';
+import { useAppSelector, useAppDispatch } from '../../hooks/redux';
 import { Card, Table, Spinner } from '../../components/common';
 import {
   Users,
@@ -22,9 +22,21 @@ import {
   Eye,
   Pencil
 } from 'lucide-react';
+import { fetchCandidates, selectCandidates, selectCandidatesLoading, selectCandidatesError } from '../../store/slices/candidateSlice';
 
 const Dashboard = () => {
+  const dispatch = useAppDispatch();
   const { user, isAuthenticated } = useAppSelector((state) => state.auth);
+  const candidates = useAppSelector(selectCandidates);
+  const candidatesLoading = useAppSelector(selectCandidatesLoading);
+  const candidatesError = useAppSelector(selectCandidatesError);
+
+  // Fetch candidates on mount
+  useEffect(() => {
+    if (isAuthenticated) {
+      dispatch(fetchCandidates());
+    }
+  }, [dispatch, isAuthenticated]);
 
   // Filter state (must be before any return)
   const [filterCourse, setFilterCourse] = useState('');
@@ -35,65 +47,31 @@ const Dashboard = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [searchKeyword, setSearchKeyword] = useState('');
 
-  // Table data and columns
-  const tableData = [
-    {
-      studentId: 'STU001',
-      name: 'John Doe',
-      category: 'General',
-      course: 'Software Development',
-      status: 'Active',
-      stage: 'Enrolled',
-      loan: 'Approved',
-      onBoarded: true
-    },
-    {
-      studentId: 'STU002',
-      name: 'Jane Smith',
-      category: 'OBC',
-      course: 'Software Testing',
-      status: 'Active',
-      stage: 'Onboarding',
-      loan: 'Pending',
-      onBoarded: false
-    },
-    {
-      studentId: 'STU003',
-      name: 'Bob Johnson',
-      category: 'SC',
-      course: 'Other Courses',
-      status: 'Inactive',
-      stage: 'Completed',
-      loan: 'Rejected',
-      onBoarded: true
-    },
-    {
-      studentId: 'STU004',
-      name: 'Alice Brown',
-      category: 'ST',
-      course: 'Software Development',
-      status: 'Active',
-      stage: 'Enrolled',
-      loan: 'Approved',
-      onBoarded: true
-    },
-    {
-      studentId: 'STU005',
-      name: 'Charlie Wilson',
-      category: 'General',
-      course: 'Software Testing',
-      status: 'Active',
-      stage: 'Onboarding',
-      loan: 'Pending',
-      onBoarded: false
-    }
-  ];
+  // Map candidate data to table row format
+  const tableData = useMemo(() => {
+    return (candidates || []).map((c) => {
+      const stage = c.training?.stage || '';
+      const agentName = c.agentName || '';
+      return {
+        studentId: c.candidateId || c._id || '',
+        name: c.fullName || c.name || '',
+        category: c.category || '',
+        course: c.course || c.othersCourseName || '',
+        status: c.status ? c.status.charAt(0).toUpperCase() + c.status.slice(1) : '',
+        stage: stage || agentName || '-',
+        loan: (Array.isArray(c.loans) && c.loans.length > 0 && c.loans[0].loan)
+          ? 'Approved'
+          : (Array.isArray(c.loans) && c.loans.length > 0 ? 'Pending' : 'Rejected'),
+        onBoarded: (Array.isArray(c.offers) && c.offers.length > 0 && c.offers[0].onboarded) || false,
+      };
+    });
+  }, [candidates]);
 
   // Unique options for filters
-  const courseOptions = Array.from(new Set(tableData.map(row => row.course)));
-  const categoryOptions = Array.from(new Set(tableData.map(row => row.category)));
-  const statusOptions = Array.from(new Set(tableData.map(row => row.status)));
-  const stageOptions = Array.from(new Set(tableData.map(row => row.stage)));
+  const courseOptions = Array.from(new Set(tableData.map(row => row.course).filter(Boolean)));
+  const categoryOptions = Array.from(new Set(tableData.map(row => row.category).filter(Boolean)));
+  const statusOptions = Array.from(new Set(tableData.map(row => row.status).filter(Boolean)));
+  const stageOptions = Array.from(new Set(tableData.map(row => row.stage).filter(Boolean)));
 
   // Filtered data
   const filteredData = useMemo(() => {
@@ -124,45 +102,71 @@ const Dashboard = () => {
     return null;
   }
 
-  // Cards remain unchanged
+  // Before rendering the table, handle loading and error states
+  if (candidatesLoading) {
+    return (
+      <div className="flex justify-center items-center h-64">
+        <Spinner className="w-8 h-8" />
+        <span className="ml-4 text-lg">Loading candidates...</span>
+      </div>
+    );
+  }
+
+  if (candidatesError) {
+    return (
+      <div className="flex flex-col items-center h-64 justify-center text-red-600 dark:text-red-400">
+        <span className="text-lg font-semibold">Error loading candidates:</span>
+        <span>{candidatesError}</span>
+      </div>
+    );
+  }
+
+  // Calculate stats from candidate data
+  const totalCandidates = tableData.length;
+  const activeCandidates = tableData.filter(row => row.status.toLowerCase() === 'active').length;
+  const softwareDevCount = tableData.filter(row => row.course.toLowerCase().includes('development')).length;
+  const softwareTestingCount = tableData.filter(row => row.course.toLowerCase().includes('testing')).length;
+  const otherCoursesCount = tableData.filter(row => row.course && !row.course.toLowerCase().includes('development') && !row.course.toLowerCase().includes('testing')).length;
+
+  // Cards use real data now
   const statsCards = [
     {
       title: 'Total Candidates',
-      value: '1,250',
-      change: '+5.2%',
-      changeType: 'positive',
+      value: totalCandidates.toLocaleString(),
+      change: '', // You can add logic for change if you want
+      changeType: '',
       icon: Users,
       color: 'blue'
     },
     {
       title: 'Active Candidates',
-      value: '980',
-      change: '+3.1%',
-      changeType: 'positive',
+      value: activeCandidates.toLocaleString(),
+      change: '',
+      changeType: '',
       icon: UserCheck,
       color: 'green'
     },
     {
       title: 'Software Development',
-      value: '540',
-      change: '+2.8%',
-      changeType: 'positive',
+      value: softwareDevCount.toLocaleString(),
+      change: '',
+      changeType: '',
       icon: Code,
       color: 'purple'
     },
     {
       title: 'Software Testing',
-      value: '320',
-      change: '-1.5%',
-      changeType: 'negative',
+      value: softwareTestingCount.toLocaleString(),
+      change: '',
+      changeType: '',
       icon: Bug,
       color: 'orange'
     },
     {
       title: 'Other Courses',
-      value: '390',
-      change: '+4.0%',
-      changeType: 'positive',
+      value: otherCoursesCount.toLocaleString(),
+      change: '',
+      changeType: '',
       icon: BookOpen,
       color: 'emerald'
     }
@@ -216,10 +220,10 @@ const Dashboard = () => {
     },
     {
       key: 'stage',
-      label: 'Stage',
+      label: 'Agent',
       sortable: true,
       render: (value) => (
-        <span className="flex items-center gap-2"><Layers className="w-4 h-4 text-gray-400" />{value}</span>
+        <span className="text-sm">{value}</span>
       )
     },
     {
@@ -241,7 +245,9 @@ const Dashboard = () => {
       label: 'On Boarded',
       sortable: true,
       render: (value) => (
-        value ? <BadgeCheck className="w-5 h-5 text-green-500" title="On Boarded" /> : <XCircle className="w-5 h-5 text-red-400" title="Not On Boarded" />
+        <span className="text-sm font-semibold">
+          {value ? 'Yes' : 'No'}
+        </span>
       )
     },
     {
@@ -311,7 +317,7 @@ const Dashboard = () => {
         </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+      <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6">
         {statsCards.map((card, index) => {
           const Icon = card.icon;
           const colorClasses = {
@@ -321,38 +327,25 @@ const Dashboard = () => {
             orange: 'text-orange-600 dark:text-orange-400',
             emerald: 'text-emerald-600 dark:text-emerald-400'
           };
-          
           return (
-            <Card key={index} variant="glass" className="p-6">
+            <Card key={index} variant="glass" className="p-4 md:p-6">
               <div className="flex items-center justify-between">
-      <div>
-                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                <div>
+                  <p className="text-xs md:text-sm font-medium text-gray-600 dark:text-gray-400">
                     {card.title}
                   </p>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-white mt-2">
+                  <p className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white mt-2">
                     {card.value}
                   </p>
-                  <div className="flex items-center mt-2">
-                    <span className={`text-sm font-medium ${
-                      card.changeType === 'positive' 
-                        ? 'text-green-600 dark:text-green-400' 
-                        : 'text-red-600 dark:text-red-400'
-                    }`}>
-                      {card.change}
-                    </span>
-                    <span className="text-sm text-gray-500 dark:text-gray-400 ml-1">
-                      from last month
-                  </span>
-                  </div>
                 </div>
-                <div className={`p-3 rounded-xl bg-gray-50 dark:bg-gray-800/60 ${colorClasses[card.color]}`}>
-                  <Icon className="w-6 h-6" />
+                <div className={`p-2 md:p-3 rounded-xl bg-gray-50 dark:bg-gray-800/60 ${colorClasses[card.color]}`}>
+                  <Icon className="w-5 h-5 md:w-6 md:h-6" />
                 </div>
               </div>
             </Card>
           );
         })}
-            </div>
+      </div>
 
       {/* Students Table */}
       <Card variant="glass">
@@ -398,16 +391,6 @@ const Dashboard = () => {
             >
               <option value="">All Statuses</option>
               {statusOptions.map(option => (
-                <option key={option} value={option}>{option}</option>
-              ))}
-            </select>
-            <select
-              className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
-              value={filterStage}
-              onChange={e => setFilterStage(e.target.value)}
-            >
-              <option value="">All Stages</option>
-              {stageOptions.map(option => (
                 <option key={option} value={option}>{option}</option>
               ))}
             </select>

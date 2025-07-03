@@ -4,6 +4,7 @@ import themeReducer from './slices/themeSlice';
 import analyticsReducer from './slices/analyticsSlice';
 import usersReducer from './slices/usersSlice';
 import participantsReducer from './slices/participantsSlice';
+import candidateReducer from './slices/candidateSlice';
 
 export const store = configureStore({
   reducer: {
@@ -12,6 +13,7 @@ export const store = configureStore({
     analytics: analyticsReducer,
     users: usersReducer,
     participants: participantsReducer,
+    candidates: candidateReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({
