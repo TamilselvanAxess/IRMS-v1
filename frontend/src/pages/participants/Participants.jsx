@@ -411,10 +411,6 @@ const Participants = () => {
                     <input id="participant-name" type="text" name="name" value={form.name} onChange={handleInputChange} required className="mt-0 block w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-150 px-3 py-2 outline-none" placeholder="Enter name" autoComplete="off" />
                   </div>
                   <div>
-                    <label htmlFor="participant-empId" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Emp ID</label>
-                    <input id="participant-empId" type="text" name="empId" value={form.empId} onChange={handleInputChange} required className="mt-0 block w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-150 px-3 py-2 outline-none" placeholder="Enter employee ID" autoComplete="off" />
-                  </div>
-                  <div>
                     <label htmlFor="participant-role" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Role</label>
                     <select id="participant-role" name="role" value={form.role} onChange={handleInputChange} required className="mt-0 block w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-150 px-3 py-2 outline-none">
                       <option value="">Select role</option>
@@ -423,6 +419,19 @@ const Participants = () => {
                       <option value="referrer">Referrer</option>
                       <option value="agent">Agent</option>
                     </select>
+                  </div>
+                  <div>
+                    <label htmlFor="participant-empId" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Emp ID</label>
+                    <input id="participant-empId" type="text" name="empId" value={form.empId} onChange={handleInputChange} required className="mt-0 block w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-150 px-3 py-2 outline-none" placeholder="Enter employee ID" autoComplete="off" />
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      Employee ID must be unique. Suggested format: {form.role ? 
+                        form.role === 'trainer' ? 'TR' + Math.floor(Math.random() * 9000 + 1000) :
+                        form.role === 'proxy' ? 'PX' + Math.floor(Math.random() * 9000 + 1000) :
+                        form.role === 'referrer' ? 'RF' + Math.floor(Math.random() * 9000 + 1000) :
+                        form.role === 'agent' ? 'AG' + Math.floor(Math.random() * 9000 + 1000) :
+                        'Select role first'
+                      : 'Select role first'}
+                    </p>
                   </div>
                   <div>
                     <label htmlFor="participant-status" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Status</label>
