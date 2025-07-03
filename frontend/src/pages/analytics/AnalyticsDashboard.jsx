@@ -98,26 +98,38 @@ const AnalyticsDashboard = () => {
           <div className="px-4 py-6 sm:px-0">
             {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-              <StatCard
-                title="Total Students"
-                value={dashboard?.total?.totalCandidates || 0}
-                color="text-green-600"
-              />
-              <StatCard
-                title="Total Amount"
-                value={`₹${dashboard?.total?.totalAmount?.toLocaleString() || 0}`}
-                color="text-blue-600"
-              />
-              <StatCard
-                title="Received Amount"
-                value={`₹${dashboard?.total?.totalReceived?.toLocaleString() || 0}`}
-                color="text-purple-600"
-              />
-              <StatCard
-                title="Balance Amount"
-                value={`₹${dashboard?.total?.totalBalance?.toLocaleString() || 0}`}
-                color="text-orange-600"
-              />
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow flex flex-col items-center p-6">
+                <div className="mb-2 flex items-center justify-center w-10 h-10 rounded-lg bg-green-100 dark:bg-green-900">
+                  <span className="text-2xl">🎓</span>
+                </div>
+                <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Total Students</div>
+                <div className="text-2xl font-bold text-green-600 dark:text-green-400">{dashboard?.total?.totalCandidates || 0}</div>
+                <div className="text-xs text-gray-400 mt-1">All enrolled</div>
+              </div>
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow flex flex-col items-center p-6">
+                <div className="mb-2 flex items-center justify-center w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900">
+                  <span className="text-2xl">💰</span>
+                </div>
+                <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Total Amount</div>
+                <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">₹{dashboard?.total?.totalAmount?.toLocaleString() || 0}</div>
+                <div className="text-xs text-gray-400 mt-1">Total fees</div>
+              </div>
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow flex flex-col items-center p-6">
+                <div className="mb-2 flex items-center justify-center w-10 h-10 rounded-lg bg-purple-100 dark:bg-purple-900">
+                  <span className="text-2xl">📥</span>
+                </div>
+                <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Received Amount</div>
+                <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">₹{dashboard?.total?.totalReceived?.toLocaleString() || 0}</div>
+                <div className="text-xs text-gray-400 mt-1">Payments received</div>
+              </div>
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow flex flex-col items-center p-6">
+                <div className="mb-2 flex items-center justify-center w-10 h-10 rounded-lg bg-orange-100 dark:bg-orange-900">
+                  <span className="text-2xl">🧾</span>
+                </div>
+                <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Balance Amount</div>
+                <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">₹{dashboard?.total?.totalBalance?.toLocaleString() || 0}</div>
+                <div className="text-xs text-gray-400 mt-1">Outstanding</div>
+              </div>
             </div>
 
             {/* Charts Section */}

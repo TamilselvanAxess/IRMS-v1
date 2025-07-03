@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { UserCheck, Search, Plus, Calendar, MapPin, Award, Clock, Edit2, Trash2 } from 'lucide-react';
-import apiService from '../../services/api/apiService';
 import { useAppDispatch, useAppSelector } from '../../hooks/redux';
 import {
   fetchParticipants,
@@ -209,82 +208,38 @@ const Participants = () => {
         <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
           <div className="px-4 py-6 sm:px-0">
             {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-              <div className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
-                <div className="p-5">
-                  <div className="flex items-center">
-                    <div className="flex-shrink-0">
-                      <UserCheck className="h-6 w-6 text-blue-400" />
-                    </div>
-                    <div className="ml-5 w-0 flex-1">
-                      <dl>
-                        <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">
-                          Total Participants
-                        </dt>
-                        <dd className="text-lg font-medium text-gray-900 dark:text-white">
-                          {participants.length}
-                        </dd>
-                      </dl>
-                    </div>
-                  </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 mb-6">
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow flex flex-col items-center p-6">
+                <div className="mb-2 flex items-center justify-center w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900">
+                  <UserCheck className="w-6 h-6 text-blue-600 dark:text-blue-400" />
                 </div>
+                <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Total Participants</div>
+                <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">{participants.length}</div>
+                <div className="text-xs text-gray-400 mt-1">All registered</div>
               </div>
-              <div className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
-                <div className="p-5">
-                  <div className="flex items-center">
-                    <div className="flex-shrink-0">
-                      <Award className="h-6 w-6 text-green-400" />
-                    </div>
-                    <div className="ml-5 w-0 flex-1">
-                      <dl>
-                        <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">
-                          Active
-                        </dt>
-                        <dd className="text-lg font-medium text-gray-900 dark:text-white">
-                          {activeCount}
-                        </dd>
-                      </dl>
-                    </div>
-                  </div>
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow flex flex-col items-center p-6">
+                <div className="mb-2 flex items-center justify-center w-10 h-10 rounded-lg bg-green-100 dark:bg-green-900">
+                  <Award className="w-6 h-6 text-green-600 dark:text-green-400" />
                 </div>
+                <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Active</div>
+                <div className="text-2xl font-bold text-green-600 dark:text-green-400">{activeCount}</div>
+                <div className="text-xs text-gray-400 mt-1">Currently active</div>
               </div>
-              <div className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
-                <div className="p-5">
-                  <div className="flex items-center">
-                    <div className="flex-shrink-0">
-                      <Calendar className="h-6 w-6 text-blue-400" />
-                    </div>
-                    <div className="ml-5 w-0 flex-1">
-                      <dl>
-                        <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">
-                          Inactive
-                        </dt>
-                        <dd className="text-lg font-medium text-gray-900 dark:text-white">
-                          {inactiveCount}
-                        </dd>
-                      </dl>
-                    </div>
-                  </div>
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow flex flex-col items-center p-6">
+                <div className="mb-2 flex items-center justify-center w-10 h-10 rounded-lg bg-gray-200 dark:bg-gray-700">
+                  <Calendar className="w-6 h-6 text-gray-600 dark:text-gray-300" />
                 </div>
+                <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Inactive</div>
+                <div className="text-2xl font-bold text-gray-600 dark:text-gray-300">{inactiveCount}</div>
+                <div className="text-xs text-gray-400 mt-1">Not active</div>
               </div>
-              <div className="bg-white dark:bg-gray-800 overflow-hidden shadow rounded-lg">
-                <div className="p-5">
-                  <div className="flex items-center">
-                    <div className="flex-shrink-0">
-                      <Clock className="h-6 w-6 text-yellow-400" />
-                    </div>
-                    <div className="ml-5 w-0 flex-1">
-                      <dl>
-                        <dt className="text-sm font-medium text-gray-500 dark:text-gray-400 truncate">
-                          Agents
-                        </dt>
-                        <dd className="text-lg font-medium text-gray-900 dark:text-white">
-                          {participants.filter(p => (p.role || '').toLowerCase() === 'agent').length}
-                        </dd>
-                      </dl>
-                    </div>
-                  </div>
+              <div className="bg-white dark:bg-gray-800 rounded-xl shadow flex flex-col items-center p-6">
+                <div className="mb-2 flex items-center justify-center w-10 h-10 rounded-lg bg-yellow-100 dark:bg-yellow-900">
+                  <Clock className="w-6 h-6 text-yellow-600 dark:text-yellow-400" />
                 </div>
+                <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Agents</div>
+                <div className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">{participants.filter(p => (p.role || '').toLowerCase() === 'agent').length}</div>
+                <div className="text-xs text-gray-400 mt-1">Agent team</div>
               </div>
             </div>
             {/* Filters */}
