@@ -20,13 +20,14 @@ import {
   HandCoins,
   RefreshCw,
   Eye,
-  Pencil
+  Pencil,
+  Clock
 } from 'lucide-react';
 import { fetchCandidates, selectCandidates, selectCandidatesLoading, selectCandidatesError } from '../../store/slices/candidateSlice';
 
 const Dashboard = () => {
   const dispatch = useAppDispatch();
-  const { user, isAuthenticated } = useAppSelector((state) => state.auth);
+  const { user, isAuthenticated, role } = useAppSelector((state) => state.auth);
   const candidates = useAppSelector(selectCandidates);
   const candidatesLoading = useAppSelector(selectCandidatesLoading);
   const candidatesError = useAppSelector(selectCandidatesError);
@@ -283,26 +284,61 @@ const Dashboard = () => {
       key: 'actions',
       label: 'Actions',
       sortable: false,
-      render: () => (
-        <div className="flex gap-2">
-          <button
-            className="p-2 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900 transition"
-            title="View"
-            aria-label="View"
-            onClick={() => {/* handle view action */}}
-          >
-            <Eye className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-          </button>
-          <button
-            className="p-2 rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900 transition"
-            title="Edit"
-            aria-label="Edit"
-            onClick={() => {/* handle edit action */}}
-          >
-            <Pencil className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-          </button>
-        </div>
-      )
+      render: () => {
+        const role = (user?.role || '').toLowerCase();
+        // Role-based actions
+        if (["admin", "superadmin"].includes(role)) {
+          return (
+            <div className="flex gap-2">
+              {/* Timeline icon */}
+              <button className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition" title="Timeline" aria-label="Timeline">
+                {/* Replace with actual Timeline component later */}
+                <Clock className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+              </button>
+              {/* View icon */}
+              <button className="p-2 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900 transition" title="View" aria-label="View">
+                {/* Replace with actual View component later */}
+                <Eye className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+              </button>
+              {/* Edit icons (3) */}
+              <button className="p-2 rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900 transition" title="Edit 1" aria-label="Edit 1">
+                {/* Replace with actual Edit component later */}
+                <Pencil className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+              </button>
+              <button className="p-2 rounded-lg hover:bg-yellow-100 dark:hover:bg-yellow-900 transition" title="Edit 2" aria-label="Edit 2">
+                {/* Replace with actual Edit2 component later */}
+                <Pencil className="w-4 h-4 text-yellow-600 dark:text-yellow-400" />
+              </button>
+              <button className="p-2 rounded-lg hover:bg-purple-100 dark:hover:bg-purple-900 transition" title="Edit 3" aria-label="Edit 3">
+                {/* Replace with actual Edit3 component later */}
+                <Pencil className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+              </button>
+            </div>
+          );
+        } else if (["enroll", "dashboard", "detail", "details"].includes(role)) {
+          return (
+            <div className="flex gap-2">
+              {/* Timeline icon */}
+              <button className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition" title="Timeline" aria-label="Timeline">
+                {/* Replace with actual Timeline component later */}
+                <Clock className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+              </button>
+              {/* View icon */}
+              <button className="p-2 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900 transition" title="View" aria-label="View">
+                {/* Replace with actual View component later */}
+                <Eye className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+              </button>
+              {/* Single Edit icon */}
+              <button className="p-2 rounded-lg hover:bg-emerald-100 dark:hover:bg-emerald-900 transition" title="Edit" aria-label="Edit">
+                {/* Replace with actual Edit component later */}
+                <Pencil className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+              </button>
+            </div>
+          );
+        } else {
+          return null;
+        }
+      }
     }
   ];
 
@@ -328,70 +364,70 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Dashboard Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-            Dashboard
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-1">
-            Welcome back, {user?.name || user?.email || 'User'}! Here's what's happening today.
-          </p>
-            </div>
-        <div className="text-right">
-          <p className="text-sm text-gray-500 dark:text-gray-400">Last updated</p>
-          <p className="text-sm font-medium text-gray-900 dark:text-white">
-            {new Date().toLocaleDateString('en-US', { 
-              weekday: 'long', 
-              year: 'numeric', 
-              month: 'long', 
-              day: 'numeric' 
-            })}
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 transition-colors duration-200">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+        {/* Dashboard Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+              Dashboard
+            </h1>
+            <p className="text-gray-600 dark:text-gray-400 mt-1">
+              Welcome back, {user?.name || user?.email || 'User'}! Here's what's happening today.
+            </p>
+          </div>
+          <div className="text-right">
+            <p className="text-sm text-gray-500 dark:text-gray-400">Last updated</p>
+            <p className="text-sm font-medium text-gray-900 dark:text-white">
+              {new Date().toLocaleDateString('en-US', { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+              })}
             </p>
           </div>
         </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6">
-        {statsCards.map((card, index) => {
-          const Icon = card.icon;
-          const colorClasses = {
-            blue: 'text-blue-600 dark:text-blue-400',
-            green: 'text-green-600 dark:text-green-400',
-            purple: 'text-purple-600 dark:text-purple-400',
-            orange: 'text-orange-600 dark:text-orange-400',
-            emerald: 'text-emerald-600 dark:text-emerald-400'
-          };
-          return (
-            <Card key={index} variant="glass" className="p-4 md:p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs md:text-sm font-medium text-gray-600 dark:text-gray-400">
-                    {card.title}
-                  </p>
-                  <p className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white mt-2">
-                    {card.value}
-                  </p>
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 md:gap-6">
+          {statsCards.map((card, index) => {
+            const Icon = card.icon;
+            const colorClasses = {
+              blue: 'text-blue-600 dark:text-blue-400',
+              green: 'text-green-600 dark:text-green-400',
+              purple: 'text-purple-600 dark:text-purple-400',
+              orange: 'text-orange-600 dark:text-orange-400',
+              emerald: 'text-emerald-600 dark:text-emerald-400'
+            };
+            return (
+              <Card key={index} variant="glass" className="p-4 md:p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs md:text-sm font-medium text-gray-600 dark:text-gray-400">
+                      {card.title}
+                    </p>
+                    <p className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white mt-2">
+                      {card.value}
+                    </p>
+                  </div>
+                  <div className={`p-2 md:p-3 rounded-xl bg-gray-50 dark:bg-gray-800/60 ${colorClasses[card.color]}`}>
+                    <Icon className="w-5 h-5 md:w-6 md:h-6" />
+                  </div>
                 </div>
-                <div className={`p-2 md:p-3 rounded-xl bg-gray-50 dark:bg-gray-800/60 ${colorClasses[card.color]}`}>
-                  <Icon className="w-5 h-5 md:w-6 md:h-6" />
-                </div>
-              </div>
-            </Card>
-          );
-        })}
-      </div>
+              </Card>
+            );
+          })}
+        </div>
 
-      {/* Students Table */}
-      <Card variant="glass">
-        <Card.Header>
-          <Card.Title>Students</Card.Title>
-          <Card.Subtitle>Latest student activity and information</Card.Subtitle>
-        </Card.Header>
-        <Card.Content>
+        {/* Students Table */}
+        <div className="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
+          <div className="px-6 pt-6">
+            <div className="text-2xl font-bold text-gray-900 dark:text-white mb-1">Students</div>
+            <div className="text-sm text-gray-500 dark:text-gray-400 mb-4">Latest student activity and information</div>
+          </div>
           {/* Table Filters & Refresh */}
-          <div className="flex gap-4 items-center mb-4 overflow-x-auto whitespace-nowrap scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-700" style={{flexWrap: 'nowrap'}}>
+          <div className="flex gap-4 items-center mb-4 overflow-x-auto whitespace-nowrap scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-700 px-6 relative" style={{flexWrap: 'nowrap'}}>
             <input
               type="text"
               placeholder="Search by keyword..."
@@ -401,7 +437,7 @@ const Dashboard = () => {
               style={{ minWidth: 200 }}
             />
             <select
-              className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+              className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 min-w-[180px] z-10"
               value={filterCourse}
               onChange={e => setFilterCourse(e.target.value)}
             >
@@ -411,7 +447,7 @@ const Dashboard = () => {
               ))}
             </select>
             <select
-              className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+              className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 min-w-[180px] z-10"
               value={filterCategory}
               onChange={e => setFilterCategory(e.target.value)}
             >
@@ -421,7 +457,7 @@ const Dashboard = () => {
               ))}
             </select>
             <select
-              className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+              className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 min-w-[180px] z-10"
               value={filterStatus}
               onChange={e => setFilterStatus(e.target.value)}
             >
@@ -431,7 +467,7 @@ const Dashboard = () => {
               ))}
             </select>
             <select
-              className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+              className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 min-w-[180px] z-10"
               value={filterStage}
               onChange={e => setFilterStage(e.target.value)}
             >
@@ -441,7 +477,7 @@ const Dashboard = () => {
               ))}
             </select>
             <select
-              className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+              className="px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 min-w-[180px] z-10"
               value={filterOnBoarded}
               onChange={e => setFilterOnBoarded(e.target.value)}
             >
@@ -464,11 +500,11 @@ const Dashboard = () => {
               <span>Refresh</span>
             </button>
           </div>
-          <div className="min-h-[500px]">
+          <div className="min-h-[500px] pb-6">
             <Table
               data={filteredData}
               columns={tableColumns}
-              variant="glass"
+              variant="default"
               pagination={true}
               itemsPerPage={10}
               className="mt-4"
@@ -476,8 +512,8 @@ const Dashboard = () => {
               onPageChange={setCurrentPage}
             />
           </div>
-        </Card.Content>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 };
