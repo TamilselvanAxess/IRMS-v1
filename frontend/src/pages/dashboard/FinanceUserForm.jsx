@@ -19,7 +19,8 @@ import {
   updateCandidateById,
   selectSelectedCandidate,
   selectCandidatesLoading,
-  selectCandidatesError
+  selectCandidatesError,
+  updateCandidateFinancial
 } from '../../store/slices/candidateSlice';
 
 // Form Section Component
@@ -266,7 +267,19 @@ const FinanceUserForm = () => {
   // Reset form when candidate data is loaded
   useEffect(() => {
     if (isEditMode && candidate) {
-      reset({ ...defaultFinanceFormValues, ...candidate });
+      const finance = candidate.financial || {};
+      reset({
+        ...defaultFinanceFormValues,
+        ...finance,
+        initialAmountSplited: finance.initialAmountSplits || [{ amount: 0, date: null }],
+        loan: candidate.loans || [],
+      });
+      setNumberOfSplits(
+        finance.numberOfSplits || (finance.balanceAmountSplits ? finance.balanceAmountSplits.length : 0)
+      );
+      setHasLoanFields((candidate.loans || []).length > 0);
+      setHasDirectPaymentFields(!!(finance.initialAmountSplits && finance.initialAmountSplits.length > 0));
+      setHasBalanceSplits(!!(finance.balanceAmountSplits && finance.balanceAmountSplits.length > 0));
       setTimeout(() => {
         setValue('balanceAmount', calculateBalance());
       }, 0);
@@ -306,9 +319,21 @@ const FinanceUserForm = () => {
         showErrorToast('Balance cannot be negative');
         return;
       }
-      // Submit
+      // Build financialData object for backend
+      const financialData = {
+        totalAmount: data.totalAmount,
+        balanceAmount: data.balanceAmount,
+        initialAmount: !!(data.initialAmountSplited && data.initialAmountSplited[0]?.amount),
+        initialAmountSplits: data.initialAmountSplited,
+        balanceAmountSplits: data.balanceAmountSplits,
+        balanceAmountSplitsPaid: data.balanceAmountSplitsPaid,
+        paymentOption: data.paymentOption,
+        numberOfSplits: data.numberOfSplits,
+        // Add other finance fields as needed
+      };
+      // Submit using the new thunk
       if (isEditMode && id) {
-        await dispatch(updateCandidateById({ candidateId: id, candidateData: data }));
+        await dispatch(updateCandidateFinancial({ candidateId: id, financialData }));
         showSuccessToast('Finance data updated successfully!');
         navigate(-1);
       } else {

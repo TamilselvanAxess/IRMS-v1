@@ -44,6 +44,20 @@ export const updateCandidateById = createAsyncThunk(
   }
 );
 
+// Async thunk to update candidate financial info only
+export const updateCandidateFinancial = createAsyncThunk(
+  'candidates/updateCandidateFinancial',
+  async ({ candidateId, financialData }, { rejectWithValue }) => {
+    try {
+      const response = await apiService.put(`/candidates/${candidateId}/financial`, financialData);
+      // Backend returns { success, message, data: candidate }
+      return response.data || null;
+    } catch (error) {
+      return rejectWithValue(error.message || 'Failed to update candidate financial info');
+    }
+  }
+);
+
 const candidateSlice = createSlice({
   name: 'candidates',
   initialState: {
@@ -90,6 +104,21 @@ const candidateSlice = createSlice({
         state.selectedCandidate = action.payload;
       })
       .addCase(updateCandidateById.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      .addCase(updateCandidateFinancial.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(updateCandidateFinancial.fulfilled, (state, action) => {
+        state.loading = false;
+        // Only update the financial field of selectedCandidate if present
+        if (state.selectedCandidate && action.payload && action.payload.financial) {
+          state.selectedCandidate.financial = action.payload.financial;
+        }
+      })
+      .addCase(updateCandidateFinancial.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });
