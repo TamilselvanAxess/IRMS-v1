@@ -268,16 +268,24 @@ const FinanceUserForm = () => {
   useEffect(() => {
     if (isEditMode && candidate) {
       const finance = candidate.financial || {};
+      const hasLoan = (candidate.loans || []).some(l => l.loan);
+      // Map backend loan fields to form fields
+      const mappedLoans = (candidate.loans || []).map(l => ({
+        loan: l.loan,
+        loanDistrubutedAmount: l.distributedAmount,
+        loanDistrubutedDate: l.distributedDate,
+      }));
       reset({
         ...defaultFinanceFormValues,
         ...finance,
         initialAmountSplited: finance.initialAmountSplits || [{ amount: 0, date: null }],
-        loan: candidate.loans || [],
+        loan: mappedLoans,
+        paymentOption: hasLoan ? 'split' : 'singleShot',
       });
       setNumberOfSplits(
         finance.numberOfSplits || (finance.balanceAmountSplits ? finance.balanceAmountSplits.length : 0)
       );
-      setHasLoanFields((candidate.loans || []).length > 0);
+      setHasLoanFields(mappedLoans.length > 0);
       setHasDirectPaymentFields(!!(finance.initialAmountSplits && finance.initialAmountSplits.length > 0));
       setHasBalanceSplits(!!(finance.balanceAmountSplits && finance.balanceAmountSplits.length > 0));
       setTimeout(() => {
@@ -319,25 +327,38 @@ const FinanceUserForm = () => {
         showErrorToast('Balance cannot be negative');
         return;
       }
-      // Build financialData object for backend
-      const financialData = {
-        totalAmount: data.totalAmount,
-        balanceAmount: data.balanceAmount,
-        initialAmount: !!(data.initialAmountSplited && data.initialAmountSplited[0]?.amount),
-        initialAmountSplits: data.initialAmountSplited,
-        balanceAmountSplits: data.balanceAmountSplits,
-        balanceAmountSplitsPaid: data.balanceAmountSplitsPaid,
-        paymentOption: data.paymentOption,
-        numberOfSplits: data.numberOfSplits,
-        // Add other finance fields as needed
+
+      // Map loans to backend field names
+      const mappedLoans = (data.loan || []).map(l => ({
+        loan: l.loan,
+        distributedAmount: l.loanDistrubutedAmount,
+        distributedDate: l.loanDistrubutedDate,
+      }));
+
+      // Build the full payload for candidate update
+      const candidateData = {
+        candidateId: id,
+        financial: {
+          totalAmount: data.totalAmount,
+          balanceAmount: data.balanceAmount,
+          initialAmount: !!(data.initialAmountSplited && data.initialAmountSplited[0]?.amount),
+          initialAmountSplits: data.initialAmountSplited,
+          balanceAmountSplits: data.balanceAmountSplits,
+          balanceAmountSplitsPaid: data.balanceAmountSplitsPaid,
+          // Do NOT include paymentOption or numberOfSplits here
+        },
       };
-      // Submit using the new thunk
+      // Only include loans if paymentOption is 'split' (Loan)
+      if (data.paymentOption === 'split') {
+        candidateData.loans = mappedLoans;
+      }
+
       if (isEditMode && id) {
-        await dispatch(updateCandidateFinancial({ candidateId: id, financialData }));
-        showSuccessToast('Finance data updated successfully!');
+        await dispatch(updateCandidateById({ candidateId: id, candidateData }));
+        showSuccessToast('Finance and loan data updated successfully!');
         navigate(-1);
       } else {
-        showSuccessToast('Finance data submitted successfully!');
+        showSuccessToast('Finance and loan data submitted successfully!');
         reset();
       }
     } catch {
