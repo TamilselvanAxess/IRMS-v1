@@ -30,6 +30,7 @@ import { fetchCandidates, selectCandidates, selectCandidatesLoading, selectCandi
 import { useNavigate } from 'react-router-dom';
 import DetailUserForm from './DetailUserForm';
 import FinanceUserForm from './FinanceUserForm';
+import { selectParticipants, fetchParticipants as fetchParticipantsList } from '../../store/slices/participantsSlice';
 
 const Dashboard = () => {
   const dispatch = useAppDispatch();
@@ -38,6 +39,8 @@ const Dashboard = () => {
   const candidatesLoading = useAppSelector(selectCandidatesLoading);
   const candidatesError = useAppSelector(selectCandidatesError);
   const navigate = useNavigate();
+  const participants = useAppSelector(selectParticipants);
+  const participantsLoading = useAppSelector((state) => state.participants.loading);
 
   // Fetch candidates on mount
   useEffect(() => {
@@ -45,6 +48,13 @@ const Dashboard = () => {
       dispatch(fetchCandidates());
     }
   }, [dispatch, isAuthenticated]);
+
+  // Fetch participants if not loaded
+  useEffect(() => {
+    if (isAuthenticated && (!participants || participants.length === 0)) {
+      dispatch(fetchParticipantsList());
+    }
+  }, [dispatch, isAuthenticated, participants]);
 
   // Filter state (must be before any return)
   const [filterCourse, setFilterCourse] = useState('');
@@ -59,23 +69,37 @@ const Dashboard = () => {
 
   // Map candidate data to table row format
   const tableData = useMemo(() => {
+    // DEBUG: Log candidates and participants for agent mapping
+    if (candidates && participants) {
+      console.log('Sample candidates:', candidates.slice(0, 5));
+      console.log('All participants:', participants);
+    }
+    // Create a map for quick lookup of agent name by name (or empId if you want to match by that)
+    const agentMap = (participants || []).reduce((acc, p) => {
+      if ((p.role || '').toLowerCase() === 'agent') {
+        acc[p.name] = p;
+      }
+      return acc;
+    }, {});
     return (candidates || []).map((c) => {
       const stage = c.training?.stage || '';
-      const agentName = c.agentName || '';
+      // Try to get the agent participant object for more info
+      const agentObj = c.agentName ? agentMap[c.agentName] : null;
+      const agentDisplay = agentObj ? `${agentObj.name} (${agentObj.empId})` : (c.agentName || '-');
       return {
         studentId: c.candidateId || c._id || '',
         name: c.fullName || c.name || '',
         category: c.category || '',
         course: c.course || c.othersCourseName || '',
         status: c.status ? c.status.charAt(0).toUpperCase() + c.status.slice(1) : '',
-        stage: stage || agentName || '-',
-        loan: (Array.isArray(c.loans) && c.loans.length > 0 && c.loans[0].loan)
-          ? 'Approved'
-          : (Array.isArray(c.loans) && c.loans.length > 0 ? 'Pending' : 'Rejected'),
+        stage: stage || agentDisplay || '-',
+        loan: (Array.isArray(c.loans) && c.loans.length > 0 && typeof c.loans[0].loan === 'boolean')
+          ? (c.loans[0].loan ? 'Yes' : 'No')
+          : 'No',
         onBoarded: (Array.isArray(c.offers) && c.offers.length > 0 && c.offers[0].onboarded) || false,
       };
     });
-  }, [candidates]);
+  }, [candidates, participants]);
 
   // Unique options for filters
   const courseOptions = Array.from(new Set(tableData.map(row => row.course).filter(Boolean)));
@@ -277,26 +301,16 @@ const Dashboard = () => {
       )
     },
     {
-      key: 'stage',
-      label: 'Agent',
-      sortable: true,
-      width: '120px',
-      render: (value) => (
-        <span className="text-sm">{value}</span>
-      )
-    },
-    {
       key: 'loan',
       label: 'Loan',
       sortable: true,
       width: '100px',
       render: (value) => (
         <span className={`inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold rounded-full ${
-          value === 'Approved' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300' :
-          value === 'Pending' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300' :
+          value === 'Yes' ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300' :
           'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300'
         }`}>
-          <HandCoins className="w-3 h-3" /> {value}
+          {value}
         </span>
       )
     },
