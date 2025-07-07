@@ -78,213 +78,216 @@ const AnalyticsDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-100 dark:bg-gray-900 transition-colors duration-200">
-      <div>
-        {/* Header */}
-        <header className="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between items-center h-16">
-              <div className="flex items-center">
-                <BarChart3 className="w-6 h-6 text-blue-600 dark:text-blue-400 mr-3" />
-                <h1 className="text-xl font-semibold text-gray-900 dark:text-white">
-                  Analytics Dashboard
-                </h1>
+      <div className="max-w-none mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8 space-y-6 lg:space-y-8">
+        {/* Dashboard Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white">
+              Analytics Dashboard
+            </h1>
+            <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400 mt-1">
+              Welcome back! Here's your analytics overview and insights.
+            </p>
+          </div>
+          <div className="text-right">
+            <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">Last updated</p>
+            <p className="text-xs sm:text-sm font-medium text-gray-900 dark:text-white">
+              {new Date().toLocaleDateString('en-US', { 
+                weekday: 'long', 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+              })}
+            </p>
+          </div>
+        </div>
+
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow flex flex-col items-center p-6">
+            <div className="mb-2 flex items-center justify-center w-10 h-10 rounded-lg bg-green-100 dark:bg-green-900">
+              <span className="text-2xl">🎓</span>
+            </div>
+            <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Total Students</div>
+            <div className="text-2xl font-bold text-green-600 dark:text-green-400">{dashboard?.total?.totalCandidates || 0}</div>
+            <div className="text-xs text-gray-400 mt-1">All enrolled</div>
+          </div>
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow flex flex-col items-center p-6">
+            <div className="mb-2 flex items-center justify-center w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900">
+              <span className="text-2xl">💰</span>
+            </div>
+            <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Total Amount</div>
+            <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">₹{dashboard?.total?.totalAmount?.toLocaleString() || 0}</div>
+            <div className="text-xs text-gray-400 mt-1">Total fees</div>
+          </div>
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow flex flex-col items-center p-6">
+            <div className="mb-2 flex items-center justify-center w-10 h-10 rounded-lg bg-purple-100 dark:bg-purple-900">
+              <span className="text-2xl">📥</span>
+            </div>
+            <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Received Amount</div>
+            <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">₹{dashboard?.total?.totalReceived?.toLocaleString() || 0}</div>
+            <div className="text-xs text-gray-400 mt-1">Payments received</div>
+          </div>
+          <div className="bg-white dark:bg-gray-800 rounded-xl shadow flex flex-col items-center p-6">
+            <div className="mb-2 flex items-center justify-center w-10 h-10 rounded-lg bg-orange-100 dark:bg-orange-900">
+              <span className="text-2xl">🧾</span>
+            </div>
+            <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Balance Amount</div>
+            <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">₹{dashboard?.total?.totalBalance?.toLocaleString() || 0}</div>
+            <div className="text-xs text-gray-400 mt-1">Outstanding</div>
+          </div>
+        </div>
+
+        {/* Charts Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+          {/* Status Distribution Radar Chart */}
+          <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6 flex flex-col items-center">
+            <div className="flex items-center mb-2">
+              <span className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-900 mr-2">
+                <svg className="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M12 20v-6m0 0V4m0 10l3-3m-3 3l-3-3" /></svg>
+              </span>
+              <div>
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white">Status Distribution</h3>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Student status overview</p>
               </div>
+            </div>
+            <RadarChart outerRadius={80} width={300} height={220} data={statusData} style={{ marginLeft: 24 }}>
+              <PolarGrid />
+              <PolarAngleAxis dataKey="status" tick={{ fill: '#94a3b8', fontSize: 12 }} />
+              <PolarRadiusAxis angle={30} domain={[0, Math.max(...statusData.map(d => d.value), 1)]} tick={{ fill: '#94a3b8', fontSize: 12 }} />
+              <Radar name="Status" dataKey="value" stroke={radarColor} fill={radarColor} fillOpacity={0.6} />
+              <Tooltip />
+            </RadarChart>
+          </div>
+          {/* Training Stages Placeholder */}
+          <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6 flex flex-col items-center justify-center">
+            <div className="flex items-center mb-4">
+              <span className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-purple-100 dark:bg-purple-900 mr-2">
+                <svg className="w-5 h-5 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><circle cx="12" cy="12" r="4" /></svg>
+              </span>
+              <div>
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white">Training Stages</h3>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Progress tracking</p>
+              </div>
+            </div>
+            {/* Larger, clearer bar chart for training stages */}
+            <div className="flex flex-1 items-center justify-center w-full h-full">
+              <BarChart width={340} height={180} data={[
+                { name: 'Stage 1', value: 0 },
+                { name: 'Stage 2', value: 0 },
+                { name: 'Stage 3', value: 0 },
+                { name: 'Stage 4', value: 0 },
+              ]} margin={{ top: 10, right: 30, left: 0, bottom: 10 }}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" tick={{ fill: '#a78bfa', fontSize: 15, fontWeight: 500 }} />
+                <YAxis tick={{ fill: '#a78bfa', fontSize: 15, fontWeight: 500 }} allowDecimals={false} />
+                <Tooltip />
+                <Bar dataKey="value" fill="#a78bfa" barSize={48} />
+              </BarChart>
             </div>
           </div>
-        </header>
-
-        {/* Main Content */}
-        <main className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-          <div className="px-4 py-6 sm:px-0">
-            {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-              <div className="bg-white dark:bg-gray-800 rounded-xl shadow flex flex-col items-center p-6">
-                <div className="mb-2 flex items-center justify-center w-10 h-10 rounded-lg bg-green-100 dark:bg-green-900">
-                  <span className="text-2xl">🎓</span>
-                </div>
-                <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Total Students</div>
-                <div className="text-2xl font-bold text-green-600 dark:text-green-400">{dashboard?.total?.totalCandidates || 0}</div>
-                <div className="text-xs text-gray-400 mt-1">All enrolled</div>
+          {/* Course Distribution Donut Chart */}
+          <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6 flex flex-col items-center">
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-1">Course Distribution</h3>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">Course enrollment breakdown</p>
+            {courseStatsLoading ? (
+              <div className="flex flex-col items-center justify-center h-32">
+                <span className="text-blue-600 dark:text-blue-400">Loading course data...</span>
               </div>
-              <div className="bg-white dark:bg-gray-800 rounded-xl shadow flex flex-col items-center p-6">
-                <div className="mb-2 flex items-center justify-center w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900">
-                  <span className="text-2xl">💰</span>
-                </div>
-                <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Total Amount</div>
-                <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">₹{dashboard?.total?.totalAmount?.toLocaleString() || 0}</div>
-                <div className="text-xs text-gray-400 mt-1">Total fees</div>
+            ) : courseStatsError ? (
+              <div className="flex flex-col items-center justify-center h-32">
+                <span className="text-red-600 dark:text-red-400">{courseStatsError}</span>
               </div>
-              <div className="bg-white dark:bg-gray-800 rounded-xl shadow flex flex-col items-center p-6">
-                <div className="mb-2 flex items-center justify-center w-10 h-10 rounded-lg bg-purple-100 dark:bg-purple-900">
-                  <span className="text-2xl">📥</span>
-                </div>
-                <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Received Amount</div>
-                <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">₹{dashboard?.total?.totalReceived?.toLocaleString() || 0}</div>
-                <div className="text-xs text-gray-400 mt-1">Payments received</div>
-              </div>
-              <div className="bg-white dark:bg-gray-800 rounded-xl shadow flex flex-col items-center p-6">
-                <div className="mb-2 flex items-center justify-center w-10 h-10 rounded-lg bg-orange-100 dark:bg-orange-900">
-                  <span className="text-2xl">🧾</span>
-                </div>
-                <div className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">Balance Amount</div>
-                <div className="text-2xl font-bold text-orange-600 dark:text-orange-400">₹{dashboard?.total?.totalBalance?.toLocaleString() || 0}</div>
-                <div className="text-xs text-gray-400 mt-1">Outstanding</div>
-              </div>
-            </div>
-
-            {/* Charts Section */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-              {/* Status Distribution Radar Chart */}
-              <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6 flex flex-col items-center">
-                <div className="flex items-center mb-2">
-                  <span className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-blue-100 dark:bg-blue-900 mr-2">
-                    <svg className="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M12 20v-6m0 0V4m0 10l3-3m-3 3l-3-3" /></svg>
-                  </span>
-                  <div>
-                    <h3 className="text-lg font-medium text-gray-900 dark:text-white">Status Distribution</h3>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">Student status overview</p>
-                  </div>
-                </div>
-                <RadarChart outerRadius={80} width={300} height={220} data={statusData} style={{ marginLeft: 24 }}>
-                  <PolarGrid />
-                  <PolarAngleAxis dataKey="status" tick={{ fill: '#94a3b8', fontSize: 12 }} />
-                  <PolarRadiusAxis angle={30} domain={[0, Math.max(...statusData.map(d => d.value), 1)]} tick={{ fill: '#94a3b8', fontSize: 12 }} />
-                  <Radar name="Status" dataKey="value" stroke={radarColor} fill={radarColor} fillOpacity={0.6} />
+            ) : coursePieData.some(d => d.value > 0) ? (
+              <>
+                <PieChart width={300} height={220}>
+                  <Pie
+                    data={coursePieData}
+                    dataKey="value"
+                    nameKey="name"
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={90}
+                    fill="#8884d8"
+                  >
+                    {coursePieData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={pieColors[index % pieColors.length]} />
+                    ))}
+                  </Pie>
                   <Tooltip />
-                </RadarChart>
-              </div>
-              {/* Training Stages Placeholder */}
-              <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6 flex flex-col items-center justify-center">
-                <div className="flex items-center mb-4">
-                  <span className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-purple-100 dark:bg-purple-900 mr-2">
-                    <svg className="w-5 h-5 text-purple-600 dark:text-purple-400" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" /><circle cx="12" cy="12" r="4" /></svg>
-                  </span>
-                  <div>
-                    <h3 className="text-lg font-medium text-gray-900 dark:text-white">Training Stages</h3>
-                    <p className="text-xs text-gray-500 dark:text-gray-400">Progress tracking</p>
-                  </div>
+                </PieChart>
+                <div className="flex justify-center items-center mt-6 space-x-8 w-full">
+                  {coursePieData.map((entry, index) => (
+                    <LegendDot key={entry.name} color={pieColors[index % pieColors.length]} label={entry.name} />
+                  ))}
                 </div>
-                {/* Larger, clearer bar chart for training stages */}
-                <div className="flex flex-1 items-center justify-center w-full h-full">
-                  <BarChart width={340} height={180} data={[
-                    { name: 'Stage 1', value: 0 },
-                    { name: 'Stage 2', value: 0 },
-                    { name: 'Stage 3', value: 0 },
-                    { name: 'Stage 4', value: 0 },
-                  ]} margin={{ top: 10, right: 30, left: 0, bottom: 10 }}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" tick={{ fill: '#a78bfa', fontSize: 15, fontWeight: 500 }} />
-                    <YAxis tick={{ fill: '#a78bfa', fontSize: 15, fontWeight: 500 }} allowDecimals={false} />
-                    <Tooltip />
-                    <Bar dataKey="value" fill="#a78bfa" barSize={48} />
-                  </BarChart>
-                </div>
-              </div>
-              {/* Course Distribution Donut Chart */}
-              <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6 flex flex-col items-center">
-                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-1">Course Distribution</h3>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mb-4">Course enrollment breakdown</p>
-                {courseStatsLoading ? (
-                  <div className="flex flex-col items-center justify-center h-32">
-                    <span className="text-blue-600 dark:text-blue-400">Loading course data...</span>
-                  </div>
-                ) : courseStatsError ? (
-                  <div className="flex flex-col items-center justify-center h-32">
-                    <span className="text-red-600 dark:text-red-400">{courseStatsError}</span>
-                  </div>
-                ) : coursePieData.some(d => d.value > 0) ? (
-                  <>
-                    <PieChart width={300} height={220}>
-                      <Pie
-                        data={coursePieData}
-                        dataKey="value"
-                        nameKey="name"
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={60}
-                        outerRadius={90}
-                        fill="#8884d8"
-                        // label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                      >
-                        {coursePieData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={pieColors[index % pieColors.length]} />
-                        ))}
-                      </Pie>
-                      <Tooltip />
-                    </PieChart>
-                    <div className="flex justify-center items-center mt-6 space-x-8 w-full">
-                      {coursePieData.map((entry, index) => (
-                        <LegendDot key={entry.name} color={pieColors[index % pieColors.length]} label={entry.name} />
-                      ))}
-                    </div>
-                  </>
-                ) : (
-                  <div className="flex flex-col items-center justify-center h-32">
-                    <span className="text-gray-400 dark:text-gray-500">No course distribution data available</span>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Category Trends & Hiring Journey */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Category Trends Line Chart */}
-              <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6 flex flex-col items-center">
-                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Category Trends</h3>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">Service category analysis</p>
-                {weeklyCategoryTrendsLoading ? (
-                  <div className="flex flex-col items-center justify-center h-32">
-                    <span className="text-blue-600 dark:text-blue-400">Loading category trends...</span>
-                  </div>
-                ) : weeklyCategoryTrendsError ? (
-                  <div className="flex flex-col items-center justify-center h-32">
-                    <span className="text-red-600 dark:text-red-400">{weeklyCategoryTrendsError}</span>
-                  </div>
-                ) : categoryTrendsChartData.length > 0 ? (
-                  <LineChart width={320} height={200} data={categoryTrendsChartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="name" tick={{ fill: '#94a3b8', fontSize: 12 }} />
-                    <YAxis tick={{ fill: '#94a3b8', fontSize: 12 }} />
-                    <Tooltip />
-                    <Legend verticalAlign="bottom" height={36} />
-                    <Line type="monotone" dataKey="Placement" stroke="#6366F1" strokeWidth={2} />
-                    <Line type="monotone" dataKey="Interview Support" stroke="#F59E42" strokeWidth={2} />
-                    <Line type="monotone" dataKey="Document Services" stroke="#10B981" strokeWidth={2} />
-                    <Line type="monotone" dataKey="Course Only" stroke="#EF4444" strokeWidth={2} />
-                  </LineChart>
-                ) : (
-                  <div className="flex flex-col items-center justify-center h-32">
-                    <span className="text-gray-400 dark:text-gray-500">No category trend data available</span>
-                  </div>
-                )}
-              </div>
-              {/* Hiring Journey Vertical Bar Chart */}
-              <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6 flex flex-col items-center">
-                <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Hiring Journey</h3>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">Interview and offer tracking</p>
-                <BarChart width={400} height={220} data={hiringJourneyData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" tick={{ fill: '#94a3b8', fontSize: 12 }} />
-                  <YAxis tick={{ fill: '#94a3b8', fontSize: 12 }} />
-                  <Tooltip />
-                  <Bar dataKey="value" fill={barColor} barSize={48} />
-                </BarChart>
-              </div>
-            </div>
-
-            {/* Loading & Error States */}
-            {loading && (
-              <div className="flex justify-center items-center mt-8">
-                <span className="text-blue-600 dark:text-blue-400">Loading analytics...</span>
-              </div>
-            )}
-            {error && (
-              <div className="flex justify-center items-center mt-8">
-                <span className="text-red-600 dark:text-red-400">{error}</span>
+              </>
+            ) : (
+              <div className="flex flex-col items-center justify-center h-32">
+                <span className="text-gray-400 dark:text-gray-500">No course distribution data available</span>
               </div>
             )}
           </div>
-        </main>
+        </div>
+
+        {/* Category Trends & Hiring Journey */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Category Trends Line Chart */}
+          <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6 flex flex-col items-center">
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Category Trends</h3>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">Service category analysis</p>
+            {weeklyCategoryTrendsLoading ? (
+              <div className="flex flex-col items-center justify-center h-32">
+                <span className="text-blue-600 dark:text-blue-400">Loading category trends...</span>
+              </div>
+            ) : weeklyCategoryTrendsError ? (
+              <div className="flex flex-col items-center justify-center h-32">
+                <span className="text-red-600 dark:text-red-400">{weeklyCategoryTrendsError}</span>
+              </div>
+            ) : categoryTrendsChartData.length > 0 ? (
+              <LineChart width={320} height={200} data={categoryTrendsChartData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" tick={{ fill: '#94a3b8', fontSize: 12 }} />
+                <YAxis tick={{ fill: '#94a3b8', fontSize: 12 }} />
+                <Tooltip />
+                <Legend verticalAlign="bottom" height={36} />
+                <Line type="monotone" dataKey="Placement" stroke="#6366F1" strokeWidth={2} />
+                <Line type="monotone" dataKey="Interview Support" stroke="#F59E42" strokeWidth={2} />
+                <Line type="monotone" dataKey="Document Services" stroke="#10B981" strokeWidth={2} />
+                <Line type="monotone" dataKey="Course Only" stroke="#EF4444" strokeWidth={2} />
+              </LineChart>
+            ) : (
+              <div className="flex flex-col items-center justify-center h-32">
+                <span className="text-gray-400 dark:text-gray-500">No category trend data available</span>
+              </div>
+            )}
+          </div>
+          {/* Hiring Journey Vertical Bar Chart */}
+          <div className="bg-white dark:bg-gray-800 shadow rounded-lg p-6 flex flex-col items-center">
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">Hiring Journey</h3>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">Interview and offer tracking</p>
+            <BarChart width={400} height={220} data={hiringJourneyData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="name" tick={{ fill: '#94a3b8', fontSize: 12 }} />
+              <YAxis tick={{ fill: '#94a3b8', fontSize: 12 }} />
+              <Tooltip />
+              <Bar dataKey="value" fill={barColor} barSize={48} />
+            </BarChart>
+          </div>
+        </div>
+
+        {/* Loading & Error States */}
+        {loading && (
+          <div className="flex justify-center items-center mt-8">
+            <span className="text-blue-600 dark:text-blue-400">Loading analytics...</span>
+          </div>
+        )}
+        {error && (
+          <div className="flex justify-center items-center mt-8">
+            <span className="text-red-600 dark:text-red-400">{error}</span>
+          </div>
+        )}
       </div>
     </div>
   );

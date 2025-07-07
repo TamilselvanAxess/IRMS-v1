@@ -51,6 +51,7 @@ export const addUser = async (req, res, next) => {
     const { fullName, email, password, role, isActive, isVerified } = req.body;
     const currentUser = req.user; // from authenticate middleware
 
+    const emailLower = email.toLowerCase();
     console.log("req.body", req.body);
     console.log("currentUser", currentUser);
 
@@ -66,7 +67,7 @@ export const addUser = async (req, res, next) => {
     }
 
     // Check if email already exists
-    const existingUser = await User.findOne({ email });
+    const existingUser = await User.findOne({ email: emailLower });
     if (existingUser) {
       return res.status(400).json({
         success: false,
@@ -74,7 +75,7 @@ export const addUser = async (req, res, next) => {
       });
     }
 
-    const newUser = new User({ fullName, email, password, role, isActive, isVerified });
+    const newUser = new User({ fullName, email: emailLower, password, role, isActive, isVerified });
     await newUser.save();
     res.status(201).json({ message: 'User added successfully' });
 
@@ -89,11 +90,12 @@ export const addUser = async (req, res, next) => {
 
 export const login = async (req, res, next) => {
   try {
-    const { email,password } = req.body;
-    console.log('email',email);
-    console.log('password',password);
-    const user = await User.findOne({ email });
-    console.log('user',user);
+    const { email, password } = req.body;
+    const emailLower = email.toLowerCase();
+    console.log('email', emailLower);
+    console.log('password', password);
+    const user = await User.findOne({ email: emailLower });
+    console.log('user', user);
     if (!user) {
       return res.status(401).json({ message: 'User not found' });
     }
@@ -106,7 +108,7 @@ export const login = async (req, res, next) => {
     }
     const token = user.generateAuthToken();
     // res.cookie('token', token, COOKIE_OPTIONS);
-    res.json({ message: 'Login successful',user, token });
+    res.json({ message: 'Login successful', user, token });
   } catch (error) {
     next(error);
   }
@@ -116,13 +118,14 @@ export const login = async (req, res, next) => {
 
 export const register = async (req, res, next) => {
   try {
-    const { fullName, email, password,role,isActive,isVerified } = req.body;
+    const { fullName, email, password, role, isActive, isVerified } = req.body;
+    const emailLower = email.toLowerCase();
         // Check if email already exists
-        const existingUser = await User.findOne({ email });
+        const existingUser = await User.findOne({ email: emailLower });
         if (existingUser) {
           return res.status(400).json({ success: false, message: "Email already registered" });
         }
-    const newUser = new User({ fullName, email, password,role,isActive,isVerified });
+    const newUser = new User({ fullName, email: emailLower, password, role, isActive, isVerified });
     await newUser.save();
     res.status(201).json({ message: 'Registration successful' });
   } catch (error) {
@@ -144,17 +147,18 @@ export const logout = async (req, res, next) => {
 export const loginWithOTP = async (req, res, next) => {
   try {
     const { email, otp } = req.body;
+    const emailLower = email.toLowerCase();
     console.log('OTP login attempt:', { email, otp });
 
     // First check if user exists
-    const userByEmail = await User.findOne({ email });
+    const userByEmail = await User.findOne({ email: emailLower });
     if (!userByEmail) {
       return res.status(401).json({ message: 'User not found' });
     }
 
     // Then check OTP
     const user = await User.findOne({
-      email,
+      email: emailLower,
       resetOTP: otp,
       resetOTPExpires: { $gt: Date.now() }
     });
@@ -179,9 +183,10 @@ export const loginWithOTP = async (req, res, next) => {
 export const forgetPassword = async (req, res, next) => {
   try {
     const { email } = req.body;
+    const emailLower = email.toLowerCase();
 
     // Find user by email
-    const user = await User.findOne({ email });
+    const user = await User.findOne({ email: emailLower });
     if (!user) {
       res.status(404).json({ message: "No user found with this email address" });
       return;
@@ -193,7 +198,7 @@ export const forgetPassword = async (req, res, next) => {
     
     // Save hashed token to user
     await User.findOneAndUpdate(
-      { email },
+      { email: emailLower },
       {
         resetPasswordToken: hashedToken,
         resetPasswordTokenExpires: new Date(Date.now() + 60 * 60 * 1000) // 1 hour
@@ -522,11 +527,11 @@ export const changePassword = async (req, res,next) => {
 
   //resend verification email
 
-  export const resendVerificationEmail = async (req, res,next) => {
+  export const resendVerificationEmail = async (req, res, next) => {
     try {
-      const { email } = req.body;   
-
-      const user = await User.findOne({ email });
+      const { email } = req.body;
+      const emailLower = email.toLowerCase();
+      const user = await User.findOne({ email: emailLower });
       if (!user) {
         return res.status(400).json({ success: false, message: "User not found" });
       }     
@@ -540,7 +545,7 @@ export const changePassword = async (req, res,next) => {
       user.verificationTokenExpires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
       await user.save();
 
-      const verificationURL = `${process.env.FRONTEND_URL}/verify-email/${verificationToken}`;  
+      let verificationURL = `${process.env.FRONTEND_URL}/verify-email/${verificationToken}`;  
       
       if(process.env.NODE_ENV === 'production' ){
         verificationURL = `${req.protocol}://${req.get('host')}/verify-email/${verificationToken}`;

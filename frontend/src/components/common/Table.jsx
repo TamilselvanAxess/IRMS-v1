@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { ChevronUp, ChevronDown, ChevronLeft, ChevronRight, MoreHorizontal, Search, Filter } from 'lucide-react';
 import { useTheme } from '../../contexts/ThemeContext';
 
@@ -18,13 +18,32 @@ const Table = ({
   onRowClick,
   onSelectionChange,
   onSort,
+  currentPage: externalCurrentPage,
+  onPageChange,
   ...props 
 }) => {
   const { isDark } = useTheme();
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
   const [selectedRows, setSelectedRows] = useState(new Set());
   const [searchTerm, setSearchTerm] = useState('');
-  const [currentPage, setCurrentPage] = useState(1);
+  const [internalCurrentPage, setInternalCurrentPage] = useState(1);
+  
+  // Use external currentPage if provided, otherwise use internal state
+  const currentPage = externalCurrentPage !== undefined ? externalCurrentPage : internalCurrentPage;
+  const setCurrentPage = (page) => {
+    if (onPageChange) {
+      onPageChange(page);
+    } else {
+      setInternalCurrentPage(page);
+    }
+  };
+
+  // Reset internal page when external currentPage changes
+  useEffect(() => {
+    if (externalCurrentPage !== undefined) {
+      setInternalCurrentPage(externalCurrentPage);
+    }
+  }, [externalCurrentPage]);
 
   // Base classes
   const baseClasses = `
@@ -195,10 +214,10 @@ const Table = ({
       )}
 
       {/* Table */}
-      <div className="overflow-x-auto">
-        <table className={tableClasses} {...props}>
+      <div className="overflow-x-auto" style={{ minHeight: '400px' }}>
+        <table className={tableClasses} {...props} style={{ tableLayout: 'fixed' }}>
           <thead>
-            <tr className={`${isDark ? 'bg-gray-800/50' : 'bg-gray-50'}`}>
+            <tr className={`${isDark ? 'bg-gray-800/50' : 'bg-gray-50'}`} style={{ height: '60px' }}>
               {selectable && (
                 <th className="w-10 px-4 py-3 text-left">
                   <input
@@ -216,6 +235,7 @@ const Table = ({
                   className={`px-4 py-3 text-left font-semibold ${
                     isDark ? 'text-gray-200' : 'text-gray-700'
                   } ${sortable && column.sortable !== false ? 'cursor-pointer select-none' : ''}`}
+                  style={{ width: column.width || 'auto', minWidth: column.width || 'auto' }}
                 >
                   <div className="flex items-center">
                     {column.label}
@@ -259,6 +279,7 @@ const Table = ({
                   className={`${
                     onRowClick ? 'cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800/50' : ''
                   } transition-colors duration-150`}
+                  style={{ height: '60px' }}
                 >
                   {selectable && (
                     <td className="w-10 px-4 py-3">
@@ -274,6 +295,13 @@ const Table = ({
                     <td
                       key={column.key}
                       className={`px-4 py-3 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}
+                      style={{ 
+                        width: column.width || 'auto', 
+                        minWidth: column.width || 'auto',
+                        height: '60px',
+                        maxHeight: '60px',
+                        overflow: 'hidden'
+                      }}
                     >
                       {renderCell(row, column)}
                     </td>
