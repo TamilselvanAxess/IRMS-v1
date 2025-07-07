@@ -30,6 +30,7 @@ import {
   Clock,
   CheckCircle
 } from 'lucide-react';
+import { selectParticipants, selectParticipantsLoading, fetchParticipants } from '../../store/slices/participantsSlice';
 
 // Form Section Component
 const FormSection = ({ title, icon: Icon, children, action }) => (
@@ -296,6 +297,27 @@ const defaultValues = {
   onboardedDate: '',
 };
 
+// Utility to recursively remove empty string fields from an object
+function removeEmptyStrings(obj) {
+  if (Array.isArray(obj)) {
+    return obj.map(removeEmptyStrings);
+  } else if (obj && typeof obj === 'object') {
+    return Object.fromEntries(
+      Object.entries(obj)
+        .filter(([, v]) => v !== '' && v !== null && v !== undefined)
+        .map(([k, v]) => [k, removeEmptyStrings(v)])
+    );
+  }
+  return obj;
+}
+
+// Utility to format date fields as ISO strings or omit if invalid
+function toISOStringOrNull(date) {
+  if (!date) return undefined;
+  const d = new Date(date);
+  return isNaN(d.getTime()) ? undefined : d.toISOString();
+}
+
 // Transform flat form data to nested structure for backend
 function transformCandidateFormData(data) {
   return {
@@ -309,11 +331,11 @@ function transformCandidateFormData(data) {
     course: data.course,
     othersCourseName: data.othersCourseName,
     inactiveReason: data.inactiveReason,
-    inactiveDate: data.inactiveDate,
+    inactiveDate: toISOStringOrNull(data.inactiveDate),
     comments: data.comments,
     documentsNonSubmissionReason: data.documentsNonSubmissionReason,
     agentName: data.agentName,
-    joiningDate: data.joiningDate,
+    joiningDate: toISOStringOrNull(data.joiningDate),
     referredBy: data.referredBy,
     // Nested objects
     addresses: {
@@ -328,14 +350,14 @@ function transformCandidateFormData(data) {
     training: {
       trainerName: data.trainerName,
       slotTime: data.slotTime,
-      classStartDate: data.classStartDate,
-      courseEndDate: data.courseEndDate,
+      classStartDate: toISOStringOrNull(data.classStartDate),
+      courseEndDate: toISOStringOrNull(data.courseEndDate),
       stage: data.stage,
-      stageUpdateDate: data.stageUpdateDate,
-      trainingStageDate: data.trainingStageDate,
-      projectsStageDate: data.projectsStageDate,
-      pocStageDate: data.pocStageDate,
-      profileCreatedStageDate: data.profileCreatedStageDate,
+      stageUpdateDate: toISOStringOrNull(data.stageUpdateDate),
+      trainingStageDate: toISOStringOrNull(data.trainingStageDate),
+      projectsStageDate: toISOStringOrNull(data.projectsStageDate),
+      pocStageDate: toISOStringOrNull(data.pocStageDate),
+      profileCreatedStageDate: toISOStringOrNull(data.profileCreatedStageDate),
     },
     education: {
       sslc: data.sslc,
@@ -351,66 +373,70 @@ function transformCandidateFormData(data) {
       photo: data.photo,
       passport: data.passport,
     },
-    profile: {
-      videoShooted: data.videoShooted,
-      videoShootedDate: data.videoShootedDate,
-      modelCreated: data.modelCreated,
-      modelCreatedDate: data.modelCreatedDate,
-      resumeCreated: data.resumeCreated,
-      resumeCreatedDate: data.resumeCreatedDate,
-      profileCreated: data.profileCreated,
-      profileCreatedDate: data.profileCreatedDate,
-    },
+    profile: data.profiles && data.profiles.length > 0
+      ? (() => {
+          const { _id, ...rest } = data.profiles[0] || {};
+          return {
+            ...rest,
+            videoShootedDate: toISOStringOrNull(rest.videoShootedDate),
+            modelCreatedDate: toISOStringOrNull(rest.modelCreatedDate),
+            resumeCreatedDate: toISOStringOrNull(rest.resumeCreatedDate),
+            profileCreatedDate: toISOStringOrNull(rest.profileCreatedDate),
+          };
+        })()
+      : {
+          videoShooted: false,
+          modelCreated: false,
+          resumeCreated: false,
+          profileCreated: false,
+        },
     agreements: {
       entry: {
         signed: data.entryAgreementSigned,
-        signedDate: data.entryAgreementSignedDate,
+        signedDate: toISOStringOrNull(data.entryAgreementSignedDate),
         document: data.entryAgreementDoc,
       },
       jobOffer: {
         signed: data.jobOfferAgreementSigned,
-        signedDate: data.jobOfferAgreementSignedDate,
+        signedDate: toISOStringOrNull(data.jobOfferAgreementSignedDate),
         document: data.jobOfferAgreementDoc,
       },
       exit: {
         signed: data.exitAgreementSigned,
-        signedDate: data.exitAgreementSignedDate,
+        signedDate: toISOStringOrNull(data.exitAgreementSignedDate),
         document: data.exitAgreementDoc,
       },
     },
     receipts: {
       entry: {
         created: data.entryReceiptCreated,
-        createdDate: data.entryReceiptCreatedDate,
+        createdDate: toISOStringOrNull(data.entryReceiptCreatedDate),
         document: data.entryReceiptDoc,
       },
       jobOffer: {
         created: data.jobOfferReceiptCreated,
-        createdDate: data.jobOfferReceiptCreatedDate,
+        createdDate: toISOStringOrNull(data.jobOfferReceiptCreatedDate),
         document: data.jobOfferReceiptDoc,
       },
       exit: {
         created: data.exitReceiptCreated,
-        createdDate: data.exitReceiptCreatedDate,
+        createdDate: toISOStringOrNull(data.exitReceiptCreatedDate),
         document: data.exitReceiptDoc,
       },
     },
-    // Add similar mapping for financial, interviews, offers, loans if needed
+    // Nested arrays
+    interviews: Array.isArray(data.interviews) ? data.interviews.map(interview => ({
+      ...interview,
+      interviewDateTime: toISOStringOrNull(interview.interviewDateTime),
+      rescheduledDateTime: toISOStringOrNull(interview.rescheduledDateTime),
+    })) : [],
+    offers: Array.isArray(data.offers) ? data.offers.map(offer => ({
+      ...offer,
+      offerLetterReceivedDate: toISOStringOrNull(offer.offerLetterReceivedDate),
+      onboardedDate: toISOStringOrNull(offer.onboardedDate),
+    })) : [],
+    // Add similar mapping for financial, loans if needed
   };
-}
-
-// Utility to recursively remove empty string fields from an object
-function removeEmptyStrings(obj) {
-  if (Array.isArray(obj)) {
-    return obj.map(removeEmptyStrings);
-  } else if (obj && typeof obj === 'object') {
-    return Object.fromEntries(
-      Object.entries(obj)
-        .filter(([, v]) => v !== '')
-        .map(([k, v]) => [k, removeEmptyStrings(v)])
-    );
-  }
-  return obj;
 }
 
 // Utility to flatten nested candidate data for form reset
@@ -450,6 +476,30 @@ function flattenCandidateData(candidate) {
     // Addresses
     permanentAddress: candidate.addresses?.permanent || '',
     currentAddress: candidate.addresses?.current || '',
+    // Agreement fields
+    entryAgreementSigned: candidate.agreements?.entry?.signed || false,
+    entryAgreementSignedDate: candidate.agreements?.entry?.signedDate || '',
+    entryAgreementDoc: candidate.agreements?.entry?.document || '',
+    jobOfferAgreementSigned: candidate.agreements?.jobOffer?.signed || false,
+    jobOfferAgreementSignedDate: candidate.agreements?.jobOffer?.signedDate || '',
+    jobOfferAgreementDoc: candidate.agreements?.jobOffer?.document || '',
+    exitAgreementSigned: candidate.agreements?.exit?.signed || false,
+    exitAgreementSignedDate: candidate.agreements?.exit?.signedDate || '',
+    exitAgreementDoc: candidate.agreements?.exit?.document || '',
+    // Receipt fields
+    entryReceiptCreated: candidate.receipts?.entry?.created || false,
+    entryReceiptCreatedDate: candidate.receipts?.entry?.createdDate || '',
+    entryReceiptDoc: candidate.receipts?.entry?.document || '',
+    jobOfferReceiptCreated: candidate.receipts?.jobOffer?.created || false,
+    jobOfferReceiptCreatedDate: candidate.receipts?.jobOffer?.createdDate || '',
+    jobOfferReceiptDoc: candidate.receipts?.jobOffer?.document || '',
+    exitReceiptCreated: candidate.receipts?.exit?.created || false,
+    exitReceiptCreatedDate: candidate.receipts?.exit?.createdDate || '',
+    exitReceiptDoc: candidate.receipts?.exit?.document || '',
+    // Nested arrays
+    profiles: Array.isArray(candidate.profiles) ? candidate.profiles : [],
+    interviews: Array.isArray(candidate.interviews) ? candidate.interviews : [],
+    offers: Array.isArray(candidate.offers) ? candidate.offers : [],
     // Add more as needed for your form fields
   };
 }
@@ -512,12 +562,21 @@ const DetailUserForm = () => {
     name: "interviews",
   });
 
-  // Mock proxy list - replace with actual data from your backend
-  const proxyList = [
-    { name: "Proxy 1", empId: "P001" },
-    { name: "Proxy 2", empId: "P002" },
-    { name: "Proxy 3", empId: "P003" },
-  ];
+  // Fetch all participants from Redux
+  const participants = useSelector(selectParticipants);
+  const participantsLoading = useSelector(selectParticipantsLoading);
+
+  // Fetch participants on mount if not already loaded
+  useEffect(() => {
+    if (!participants || participants.length === 0) {
+      dispatch(fetchParticipants());
+    }
+  }, [dispatch, participants]);
+
+  // Filter proxies
+  const proxyList = (participants || []).filter(
+    (p) => (p.role === 'proxy' || p.role === 'Proxy') && p.status === 'active'
+  );
 
   // Fetch candidate on mount
   useEffect(() => {
